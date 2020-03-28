@@ -2,8 +2,7 @@
 #include <signal.h>
 #include <wiringPi.h>
 #include <softPwm.h>
-#include "joystick.hh"
-#include <unistd.h>
+#include "joystick.h"
 #include <pca9685.h>
 
 
@@ -65,7 +64,7 @@ int main(int argc, const char** argv) {
 	bool forward = false, backward = false;
 
 	for (;;) {
-		usleep(1000);
+		delayMicroseconds(1000);
 		JoystickEvent event;
 		if (joystick.sample(&event)) {
 			if (event.isButton()) {

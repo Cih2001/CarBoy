@@ -2,7 +2,9 @@
 #include <signal.h>
 #include "joystick.h"
 #include "MovementCtrl.h"
+#include "JoystickCtrl.h"
 #include <wiringPi.h>
+#include <memory>
 
 #define FRONT_LEFT_MOTOR_PWM 0
 #define FRONT_LEFT_MOTOR_EN1 1
@@ -20,6 +22,9 @@
 #define REAR_RIGHT_MOTOR_EN1 9
 #define REAR_RIGHT_MOTOR_EN2 10
 
+
+void joystickEventHandler(std::shared_ptr<JoystickCommandEvent> event);
+
 MovementController movementCtrl(
     FRONT_LEFT_MOTOR_PWM, FRONT_LEFT_MOTOR_EN1, FRONT_LEFT_MOTOR_EN2,
     FRONT_RIGHT_MOTOR_PWM, FRONT_RIGHT_MOTOR_EN1, FRONT_RIGHT_MOTOR_EN2,
@@ -27,6 +32,15 @@ MovementController movementCtrl(
     REAR_RIGHT_MOTOR_PWM, REAR_RIGHT_MOTOR_EN1, REAR_RIGHT_MOTOR_EN2,
     50 
 );
+JoystickController joystickCtrl(
+    "/dev/input/js0",
+    joystickEventHandler
+);
+
+void joystickEventHandler(std::shared_ptr<JoystickCommandEvent> event) {
+    printf("received an event\n");
+    return;
+}
 
 void CtrlCHandler(int s) {
     printf("Caught signal %d\n", s);

@@ -70,8 +70,10 @@ int main(int argc, const char** argv) {
                 case 14:
                     if (event.value == 0) {
                         // Key up
+                        movementCtrl.StopAll();
                     } else {
                         // Key Down
+                        movementCtrl.MoveBackward(4096);
                     }
                     break;
                 }

@@ -1,13 +1,15 @@
 #ifndef MovementCtrl
 #define MovementCtrl
 
-#define ENGINE_FRONT_LEFT 0
-#define ENGINE_FRONT_RIGHT 1
-#define ENGINE_REAR_LEFT 2
-#define ENGINE_REAR_RIGHT 3
+#define FRONT_LEFT_MOTOR 0
+#define FRONT_RIGHT_MOTOR 1
+#define REAR_LEFT_MOTOR 2
+#define REAR_RIGHT_MOTOR 3
 
 #define PCA_PIN_BASE 300 // This is the base number for the extended pins on WiringPi by PCA9685
 #define MAX_PWM 255 // PWN value can be [0..255]
+
+#define NUM_OF_MOTORS 4
 
 enum MovementDirection {
     FORWARD, BACKWARD
@@ -27,6 +29,7 @@ public:
 
     void SetSpeedAll(int speed);
     void MoveForward(int speed);
+    void MoveBackward(int speed);
 
     void StopAll();
     void ResetPWM();
@@ -34,20 +37,21 @@ public:
 private:
     int _pca_fd;
     unsigned int _pwmFrequency;
-    unsigned int _enginesPwmPins[4];
-    unsigned int _enginesEN1Pins[4];
-    unsigned int _enginesEN2Pins[4];
-    int _enginesSpeed[4];
+    unsigned int _motorsPwmPins[NUM_OF_MOTORS];
+    unsigned int _motorsEN1Pins[NUM_OF_MOTORS];
+    unsigned int _motorsEN2Pins[NUM_OF_MOTORS];
+    int _motorsSpeed[NUM_OF_MOTORS];
 
-    // Engine state can be stopped or moving forward/backward.
-    enum EngineState {
-       ENGINE_STOPPED, MOVING_FORWARD, MOVING_BACKWARD
+    // Motor state can be stopped or moving forward/backward.
+    enum MotorState {
+       MOTOR_STOPPED, MOVING_FORWARD, MOVING_BACKWARD
     };
 
-    EngineState _enginesState[4];
+    MotorState _motorsState[NUM_OF_MOTORS];
 
     // methods:
-    void moveEngine(unsigned int idx, int speed, MovementDirection dir);
+    void moveMotor(const unsigned int idx, int speed, MovementDirection dir);
+    void stopMotor(const unsigned int idx);
 };
 #endif
 

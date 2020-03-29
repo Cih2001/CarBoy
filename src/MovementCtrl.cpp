@@ -12,29 +12,29 @@ MovementController::MovementController(
     const unsigned int pwmFrequency
     ) {
     // Initializing private variables.
-    this->_enginesPwmPins[ENGINE_FRONT_LEFT] = flPwm;
-    this->_enginesEN1Pins[ENGINE_FRONT_LEFT] = flEN1;
-    this->_enginesEN2Pins[ENGINE_FRONT_LEFT] = flEN2;
+    this->_motorsPwmPins[FRONT_LEFT_MOTOR] = flPwm;
+    this->_motorsEN1Pins[FRONT_LEFT_MOTOR] = flEN1;
+    this->_motorsEN2Pins[FRONT_LEFT_MOTOR] = flEN2;
 
-    this->_enginesPwmPins[ENGINE_FRONT_RIGHT] = frPwm;
-    this->_enginesEN1Pins[ENGINE_FRONT_RIGHT] = frEN1;
-    this->_enginesEN2Pins[ENGINE_FRONT_RIGHT] = frEN2;
+    this->_motorsPwmPins[FRONT_RIGHT_MOTOR] = frPwm;
+    this->_motorsEN1Pins[FRONT_RIGHT_MOTOR] = frEN1;
+    this->_motorsEN2Pins[FRONT_RIGHT_MOTOR] = frEN2;
 
-    this->_enginesPwmPins[ENGINE_REAR_LEFT] = rlPwm;
-    this->_enginesEN1Pins[ENGINE_REAR_LEFT] = rlEN1;
-    this->_enginesEN2Pins[ENGINE_REAR_LEFT] = rlEN2;
+    this->_motorsPwmPins[REAR_LEFT_MOTOR] = rlPwm;
+    this->_motorsEN1Pins[REAR_LEFT_MOTOR] = rlEN1;
+    this->_motorsEN2Pins[REAR_LEFT_MOTOR] = rlEN2;
 
-    this->_enginesPwmPins[ENGINE_REAR_RIGHT] = rrPwm;
-    this->_enginesEN1Pins[ENGINE_REAR_RIGHT] = rrEN1;
-    this->_enginesEN2Pins[ENGINE_REAR_RIGHT] = rrEN2;
+    this->_motorsPwmPins[REAR_RIGHT_MOTOR] = rrPwm;
+    this->_motorsEN1Pins[REAR_RIGHT_MOTOR] = rrEN1;
+    this->_motorsEN2Pins[REAR_RIGHT_MOTOR] = rrEN2;
 
     this->_pwmFrequency = pwmFrequency;
     
-    for (unsigned int i = 0; i < 4; i++) {
-        // Setting engines speed.
-        this->_enginesSpeed[i] = 0;
-        // Setting engines state. they are not moving.
-        this->_enginesState[i] = ENGINE_STOPPED;
+    for (unsigned int i = 0; i < NUM_OF_MOTORS; i++) {
+        // Setting motors speed.
+        this->_motorsSpeed[i] = 0;
+        // Setting motors state. they are not moving.
+        this->_motorsState[i] = MOTOR_STOPPED;
     }
 	// Setting up wiring Pi.
 	wiringPiSetup();
@@ -52,76 +52,79 @@ MovementController::MovementController(
 }
 
 void MovementController::SetSpeedAll(int speed) {
-    for (unsigned int i = 0; i < 4; i++) {
-        // Setting engines speed.
-        _enginesSpeed[i] = speed;
+    for (unsigned int i = 0; i < NUM_OF_MOTORS; i++) {
+        // Setting motors speed.
+        _motorsSpeed[i] = speed;
     }
 
     return;
 }
 
 void MovementController::MoveForward(int speed = 0) {
-    // update speed.
-    _enginesSpeed[ENGINE_FRONT_LEFT] = speed;
-    _enginesSpeed[ENGINE_FRONT_RIGHT] = speed;
-    _enginesSpeed[ENGINE_REAR_LEFT] = speed;
-    _enginesSpeed[ENGINE_REAR_RIGHT] = speed;
-
-    // update directions.
-    _enginesState[ENGINE_FRONT_LEFT] = MOVING_FORWARD;
-    _enginesState[ENGINE_FRONT_RIGHT] = MOVING_FORWARD;
-    _enginesState[ENGINE_REAR_LEFT] = MOVING_FORWARD;
-    _enginesState[ENGINE_REAR_RIGHT] = MOVING_FORWARD;
-
-	pwmWrite(
-        PCA_PIN_BASE + _enginesPwmPins[ENGINE_FRONT_LEFT],
-        _enginesSpeed[ENGINE_FRONT_LEFT]
-    );
-	pwmWrite(
-        PCA_PIN_BASE + _enginesPwmPins[ENGINE_FRONT_RIGHT],
-        _enginesSpeed[ENGINE_FRONT_RIGHT]
-    );
-	pwmWrite(
-        PCA_PIN_BASE + _enginesPwmPins[ENGINE_REAR_LEFT],
-        _enginesSpeed[ENGINE_REAR_LEFT]
-    );
-	pwmWrite(
-        PCA_PIN_BASE + _enginesPwmPins[ENGINE_REAR_RIGHT],
-        _enginesSpeed[ENGINE_REAR_RIGHT]
-    );
-
-    digitalWrite(PCA_PIN_BASE + _enginesEN1Pins[ENGINE_FRONT_LEFT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN2Pins[ENGINE_FRONT_LEFT], LOW);
-    digitalWrite(PCA_PIN_BASE + _enginesEN1Pins[ENGINE_FRONT_RIGHT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN2Pins[ENGINE_FRONT_RIGHT], LOW);
-    digitalWrite(PCA_PIN_BASE + _enginesEN1Pins[ENGINE_REAR_LEFT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN2Pins[ENGINE_REAR_LEFT], LOW);
-    digitalWrite(PCA_PIN_BASE + _enginesEN1Pins[ENGINE_REAR_RIGHT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN2Pins[ENGINE_REAR_RIGHT], LOW);
-
+    this->moveMotor(REAR_LEFT_MOTOR,speed,FORWARD);
+    this->moveMotor(REAR_RIGHT_MOTOR,speed,FORWARD);
+    this->moveMotor(FRONT_LEFT_MOTOR,speed,FORWARD);
+    this->moveMotor(FRONT_RIGHT_MOTOR,speed,FORWARD);
     return;
 }
 
-void MovementController::moveEngine(unsigned int idx, int speed, MovementDirection dir)
-{
+void MovementController::MoveBackward(int speed = 0) {
+    moveMotor(REAR_LEFT_MOTOR,speed,BACKWARD);
+    moveMotor(REAR_RIGHT_MOTOR,speed,BACKWARD);
+    moveMotor(FRONT_LEFT_MOTOR,speed,BACKWARD);
+    moveMotor(FRONT_RIGHT_MOTOR,speed,BACKWARD);
     return;
+}
+
+void MovementController::moveMotor(const unsigned int idx, int speed, MovementDirection dir)
+{
+    if (idx >= NUM_OF_MOTORS ) {
+        return;
+    }
+    
+    if (dir == FORWARD) {
+        // Move motor forward:
+        // Setting speed
+        _motorsSpeed[idx] = speed;
+        pwmWrite(
+            PCA_PIN_BASE + _motorsPwmPins[idx],
+            _motorsSpeed[idx]
+        );
+        // Setting direction.
+        _motorsState[idx] = MOVING_FORWARD;
+        digitalWrite(PCA_PIN_BASE + _motorsEN1Pins[idx], HIGH);
+        digitalWrite(PCA_PIN_BASE + _motorsEN2Pins[idx], LOW);
+    } else {
+        // Move motor backward:
+        // Setting speed
+        _motorsSpeed[idx] = speed;
+        pwmWrite(
+            PCA_PIN_BASE + _motorsPwmPins[idx],
+            _motorsSpeed[idx]
+        );
+        // Setting direction.
+        _motorsState[idx] = MOVING_BACKWARD;
+        digitalWrite(PCA_PIN_BASE + _motorsEN1Pins[idx], LOW);
+        digitalWrite(PCA_PIN_BASE + _motorsEN2Pins[idx], HIGH);
+    }
+    return;
+}
+
+void MovementController::stopMotor(const unsigned int idx) {
+    if (idx >= NUM_OF_MOTORS ) {
+        return;
+    }
+    _motorsState[idx] = MOTOR_STOPPED;
+    digitalWrite(PCA_PIN_BASE + _motorsEN1Pins[idx], HIGH);
+    digitalWrite(PCA_PIN_BASE + _motorsEN2Pins[idx], HIGH);
 }
 
 void MovementController::StopAll() {
-    // update directions.
-    _enginesState[ENGINE_FRONT_LEFT] = ENGINE_STOPPED;
-    _enginesState[ENGINE_FRONT_RIGHT] = ENGINE_STOPPED;
-    _enginesState[ENGINE_REAR_LEFT] = ENGINE_STOPPED;
-    _enginesState[ENGINE_REAR_RIGHT] = ENGINE_STOPPED;
-    
-    digitalWrite(PCA_PIN_BASE + _enginesEN1Pins[ENGINE_FRONT_LEFT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN2Pins[ENGINE_FRONT_LEFT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN1Pins[ENGINE_FRONT_RIGHT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN2Pins[ENGINE_FRONT_RIGHT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN1Pins[ENGINE_REAR_LEFT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN2Pins[ENGINE_REAR_LEFT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN1Pins[ENGINE_REAR_RIGHT], HIGH);
-    digitalWrite(PCA_PIN_BASE + _enginesEN2Pins[ENGINE_REAR_RIGHT], HIGH);
+    stopMotor(FRONT_LEFT_MOTOR);
+    stopMotor(FRONT_RIGHT_MOTOR);
+    stopMotor(REAR_LEFT_MOTOR);
+    stopMotor(REAR_RIGHT_MOTOR);
+    return;
 }
 
 void MovementController::ResetPWM() {

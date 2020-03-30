@@ -23,9 +23,6 @@
 #define REAR_RIGHT_MOTOR_EN1 9
 #define REAR_RIGHT_MOTOR_EN2 10
 
-
-void joystickEventHandler(std::shared_ptr<JoystickCommandEvent> event);
-
 MovementController movementCtrl(
     FRONT_LEFT_MOTOR_PWM, FRONT_LEFT_MOTOR_EN1, FRONT_LEFT_MOTOR_EN2,
     FRONT_RIGHT_MOTOR_PWM, FRONT_RIGHT_MOTOR_EN1, FRONT_RIGHT_MOTOR_EN2,
@@ -34,12 +31,7 @@ MovementController movementCtrl(
     50 
 );
 
-void joystickEventHandler(std::shared_ptr<JoystickCommandEvent> event) {
-    printf("received an event\n");
-    return;
-}
-
-void CtrlCHandler(int s) {
+void CtrlCSignalHandler(int s) {
     printf("Caught signal %d\n", s);
     movementCtrl.StopAll();
     movementCtrl.ResetPWM();
@@ -50,7 +42,7 @@ int main(int argc, const char** argv) {
     // Initializing signals
     struct sigaction sigIntHandler;
 
-    sigIntHandler.sa_handler = CtrlCHandler;
+    sigIntHandler.sa_handler = CtrlCSignalHandler;
     sigemptyset(&sigIntHandler.sa_mask);
     sigIntHandler.sa_flags = 0;
 

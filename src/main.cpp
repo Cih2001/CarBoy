@@ -1,10 +1,11 @@
 #include <iostream>
 #include <signal.h>
-#include "joystick.h"
 #include "MovementCtrl.h"
 #include "JoystickCtrl.h"
 #include <wiringPi.h>
 #include <memory>
+#include <unistd.h>
+#include <cstring>
 
 #define FRONT_LEFT_MOTOR_PWM 0
 #define FRONT_LEFT_MOTOR_EN1 1
@@ -32,10 +33,6 @@ MovementController movementCtrl(
     REAR_RIGHT_MOTOR_PWM, REAR_RIGHT_MOTOR_EN1, REAR_RIGHT_MOTOR_EN2,
     50 
 );
-JoystickController joystickCtrl(
-    "/dev/input/js0",
-    joystickEventHandler
-);
 
 void joystickEventHandler(std::shared_ptr<JoystickCommandEvent> event) {
     printf("received an event\n");
@@ -62,35 +59,51 @@ int main(int argc, const char** argv) {
     std::cout << "Setting up" << std::endl;
 
     // Initializing joystick
-    Joystick joystick("/dev/input/js0");
-    if (!joystick.isFound()) {
-        printf("Joy stick not found.\n");
+    // Creating a pipe.
+    int pipe_fd[2];
+    if (pipe(pipe_fd) == -1) {
+        perror("Error creating pipe");
         exit(1);
-    }   
+    }
+    JoystickController joystickCtrl(
+        "/dev/input/js0",
+        pipe_fd[1]
+    );
 
+    int pid = fork();
+    if (pid == -1) {
+        perror("Error forking processes.");
+        exit(1);
+    }
+    if ( pid == 0 ) {
+        // child process.
+        while ( joystickCtrl.Start() < 0) {
+            printf("Error starting joystick.\n");
+            sleep(1);
+        }
+    }
+
+    // Parent process continues here.
     for (;;) {
-        delayMicroseconds(1000);
-        JoystickEvent event;
-        if (joystick.sample(&event)) {
-            if (event.isButton()) {
-                switch (event.number) {
-                case 13:
-                    if (event.value == 0) {
-                        movementCtrl.StopAll();
-                    } else {
-                        movementCtrl.MoveForward(4096);
-                    }
-                    break;
-                case 14:
-                    if (event.value == 0) {
-                        // Key up
-                        movementCtrl.StopAll();
-                    } else {
-                        // Key Down
-                        movementCtrl.MoveBackward(4096);
-                    }
-                    break;
-                }
+        // We should constantly read the pipe.
+
+        int buffer_size = 256;
+        char buffer[buffer_size];
+        int bytes_read = read(pipe_fd[0], buffer, buffer_size-1);
+
+        JoystickCommandEvent event;
+        if (bytes_read == sizeof(event)) {
+            memcpy(&event, buffer, sizeof(event));
+            switch (event.CommandCode) {
+            case CMD_MOVE_FORWARD:
+                movementCtrl.MoveForward(2048);
+                break;
+            case CMD_MOVE_BACKWARD:
+                movementCtrl.MoveBackward(2048);
+                break;
+            case CMD_STOP:
+            default:
+                movementCtrl.StopAll();
             }
         }
     }

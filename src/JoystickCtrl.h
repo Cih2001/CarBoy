@@ -35,12 +35,14 @@
 
 enum Commands {
     CMD_STOP,
+    CMD_SET_SPEED,
     CMD_MOVE_FORWARD,
     CMD_MOVE_BACKWARD
 };
 
 struct __attribute__ ((packed)) JoystickCommandEvent {
     Commands CommandCode;
+    int GlobalSpeedInPercent;
     bool ButtonStatus[NUM_OF_BUTTONS];
     short AxesStatus[NUM_OF_AXES];
 };

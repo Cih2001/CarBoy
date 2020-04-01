@@ -51,28 +51,65 @@ MovementController::MovementController(
     return;
 }
 
-void MovementController::SetSpeedAll(int speed) {
-    for (unsigned int i = 0; i < NUM_OF_MOTORS; i++) {
-        // Setting motors speed.
-        _motorsSpeed[i] = speed;
-    }
-
-    return;
+void MovementController::SetRelativeSpeed(int relativeSpeed) {
+    switch (_currentCommand) {
+        case MOVE_FORWARD:
+            MoveForwardRelative(relativeSpeed);
+            break;
+        case MOVE_BACKWARD:
+            MoveBackwardRelative(relativeSpeed);
+            break;
+        case STOP:
+        default:
+            return;
+    };
 }
 
 void MovementController::MoveForward(int speed = 0) {
-    this->moveMotor(REAR_LEFT_MOTOR,speed,FORWARD);
+    this->moveMotor(REAR_LEFT_MOTOR,speed ,FORWARD);
     this->moveMotor(REAR_RIGHT_MOTOR,speed,FORWARD);
-    this->moveMotor(FRONT_LEFT_MOTOR,speed,FORWARD);
+    // TODO: fix this
+    this->moveMotor(FRONT_LEFT_MOTOR,speed+ 0.15 * speed,FORWARD);
     this->moveMotor(FRONT_RIGHT_MOTOR,speed,FORWARD);
+    _currentCommand = MOVE_FORWARD;
     return;
 }
 
-void MovementController::MoveBackward(int speed = 0) {
+void MovementController::MoveForwardRelative(int relativeSpeed) {
+    relativeSpeed = (relativeSpeed > 100) ? 100 : relativeSpeed;
+    relativeSpeed = (relativeSpeed < -100) ? -100 : relativeSpeed;
+    int delta = (int)((float)_defaultSpeed * (float) relativeSpeed / 100.0);
+    int speed = (_defaultSpeed + delta);
+    printf("Move forward relative: %d\n", speed);
+    this->MoveForward(speed);
+}
+
+void MovementController::MoveBackwardRelative(int relativeSpeed) {
+    relativeSpeed = (relativeSpeed > 100) ? 100 : relativeSpeed;
+    relativeSpeed = (relativeSpeed < -100) ? -100 : relativeSpeed;
+    this->MoveBackward(_defaultSpeed + _defaultSpeed * relativeSpeed);
+}
+
+void MovementController::setMotorSpeed(
+        const unsigned int idx,
+        unsigned int speed,
+        const MovementDirection dir) {
+    speed = (speed < MINIMUM_SPEED) ? MINIMUM_SPEED : speed;
+    speed = (speed > MAXIMUM_SPEED) ? MAXIMUM_SPEED : speed;
+    
+    if (idx >= NUM_OF_MOTORS ) return;
+
+    _motorsSpeed[idx] = speed;
+    _motorsState[idx] = (dir == FORWARD) ? MOVING_FORWARD : MOVING_BACKWARD;
+
+
+}
+void MovementController::MoveBackward(int speed) {
     moveMotor(REAR_LEFT_MOTOR,speed,BACKWARD);
     moveMotor(REAR_RIGHT_MOTOR,speed,BACKWARD);
     moveMotor(FRONT_LEFT_MOTOR,speed,BACKWARD);
     moveMotor(FRONT_RIGHT_MOTOR,speed,BACKWARD);
+    _currentCommand = MOVE_BACKWARD;
     return;
 }
 
@@ -81,29 +118,21 @@ void MovementController::moveMotor(const unsigned int idx, int speed, MovementDi
     if (idx >= NUM_OF_MOTORS ) {
         return;
     }
+    setMotorSpeed(idx, speed, dir);
     
     if (dir == FORWARD) {
-        // Move motor forward:
-        // Setting speed
-        _motorsSpeed[idx] = speed;
         pwmWrite(
             PCA_PIN_BASE + _motorsPwmPins[idx],
             _motorsSpeed[idx]
         );
-        // Setting direction.
-        _motorsState[idx] = MOVING_FORWARD;
         digitalWrite(PCA_PIN_BASE + _motorsEN1Pins[idx], HIGH);
         digitalWrite(PCA_PIN_BASE + _motorsEN2Pins[idx], LOW);
     } else {
         // Move motor backward:
-        // Setting speed
-        _motorsSpeed[idx] = speed;
         pwmWrite(
             PCA_PIN_BASE + _motorsPwmPins[idx],
             _motorsSpeed[idx]
         );
-        // Setting direction.
-        _motorsState[idx] = MOVING_BACKWARD;
         digitalWrite(PCA_PIN_BASE + _motorsEN1Pins[idx], LOW);
         digitalWrite(PCA_PIN_BASE + _motorsEN2Pins[idx], HIGH);
     }

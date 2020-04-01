@@ -21,6 +21,12 @@ int JoystickController::Start() {
     return 0;
 }
 
+template<typename T> T map(T val, T ir1, T ir2, T fr1, T fr2)
+{
+    T pos = (val - ir1) / ( ir2 - ir1);
+    return (fr2 - fr1) * pos + fr1;
+}
+
 void JoystickController::handleNewEvent(JoystickEvent& event) {
     if (event.isButton()) {
         if (event.value == 0) {
@@ -35,10 +41,24 @@ void JoystickController::handleNewEvent(JoystickEvent& event) {
         _axes[event.number] = event.value;
     }
 
-    // Now we need to process the position
     JoystickCommandEvent commandEvent;
     memcpy(commandEvent.AxesStatus, _axes, sizeof(_axes));
     memcpy(commandEvent.ButtonStatus, _buttons, sizeof(_buttons));
+
+    // computing relative speed for all motors.
+    if (event.number == AXIS_L2) {
+        // just reducing speed
+        commandEvent.CommandCode = CMD_SET_SPEED;
+        int percent = -map((int)_axes[AXIS_L2], -32768, 32767, 0, 100);
+        commandEvent.GlobalSpeedInPercent = percent;
+        sendCommand(commandEvent);
+
+        return;
+    }
+    if (event.number == AXIS_R2) {
+    }
+
+    // Now we need to process the position
     if (_buttons[BTN_UP]) {
         commandEvent.CommandCode = CMD_MOVE_FORWARD;
         sendCommand(commandEvent);

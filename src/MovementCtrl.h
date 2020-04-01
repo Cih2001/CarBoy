@@ -11,8 +11,17 @@
 
 #define NUM_OF_MOTORS 4
 
+#define MINIMUM_SPEED 800
+#define MAXIMUM_SPEED 4098
+
 enum MovementDirection {
     FORWARD, BACKWARD
+};
+
+enum MovementCommand {
+    STOP,
+    MOVE_FORWARD,
+    MOVE_BACKWARD
 };
 
 
@@ -27,9 +36,11 @@ public:
         const unsigned int pwmFrequency
     );
 
-    void SetSpeedAll(int speed);
+    void SetRelativeSpeed(int relativeSpeed);
     void MoveForward(int speed);
+    void MoveForwardRelative(int relativeSpeed);
     void MoveBackward(int speed);
+    void MoveBackwardRelative(int relativeSpeed);
 
     void StopAll();
     void ResetPWM();
@@ -41,6 +52,9 @@ private:
     unsigned int _motorsEN1Pins[NUM_OF_MOTORS];
     unsigned int _motorsEN2Pins[NUM_OF_MOTORS];
     int _motorsSpeed[NUM_OF_MOTORS];
+    unsigned int _defaultSpeed = (MAXIMUM_SPEED - MINIMUM_SPEED)/2;
+    unsigned int _speed = _defaultSpeed;
+    MovementCommand _currentCommand = STOP;
 
     // Motor state can be stopped or moving forward/backward.
     enum MotorState {
@@ -52,6 +66,7 @@ private:
     // methods:
     void moveMotor(const unsigned int idx, int speed, MovementDirection dir);
     void stopMotor(const unsigned int idx);
+    void setMotorSpeed(const unsigned int idx, unsigned int speed, const MovementDirection dir);
 };
 #endif
 

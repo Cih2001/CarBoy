@@ -75,6 +75,7 @@ int main(int argc, const char** argv) {
         }
     }
 
+    int relativeSpeed = 0;
     // Parent process continues here.
     for (;;) {
         // We should constantly read the pipe.
@@ -87,11 +88,15 @@ int main(int argc, const char** argv) {
         if (bytes_read == sizeof(event)) {
             memcpy(&event, buffer, sizeof(event));
             switch (event.CommandCode) {
+            case CMD_SET_SPEED:
+                relativeSpeed = event.GlobalSpeedInPercent;
+                printf("Setting speed: %d\n", relativeSpeed);
+                movementCtrl.SetRelativeSpeed(relativeSpeed);
             case CMD_MOVE_FORWARD:
-                movementCtrl.MoveForward(2048);
+                movementCtrl.MoveForwardRelative(relativeSpeed);
                 break;
             case CMD_MOVE_BACKWARD:
-                movementCtrl.MoveBackward(2048);
+                movementCtrl.MoveBackwardRelative(relativeSpeed);
                 break;
             case CMD_STOP:
             default:

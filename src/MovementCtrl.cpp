@@ -87,7 +87,10 @@ void MovementController::MoveForwardRelative(int relativeSpeed) {
 void MovementController::MoveBackwardRelative(int relativeSpeed) {
     relativeSpeed = (relativeSpeed > 100) ? 100 : relativeSpeed;
     relativeSpeed = (relativeSpeed < -100) ? -100 : relativeSpeed;
-    this->MoveBackward(_defaultSpeed + _defaultSpeed * relativeSpeed);
+    int delta = (int)((float)_defaultSpeed * (float) relativeSpeed / 100.0);
+    int speed = (_defaultSpeed + delta);
+    printf("Move backward relative: %d\n", speed);
+    this->MoveBackward(speed);
 }
 
 void MovementController::setMotorSpeed(
@@ -153,6 +156,7 @@ void MovementController::StopAll() {
     stopMotor(FRONT_RIGHT_MOTOR);
     stopMotor(REAR_LEFT_MOTOR);
     stopMotor(REAR_RIGHT_MOTOR);
+    _currentCommand = STOP;
     return;
 }
 

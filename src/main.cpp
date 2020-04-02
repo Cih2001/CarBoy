@@ -92,6 +92,7 @@ int main(int argc, const char** argv) {
                 relativeSpeed = event.GlobalSpeedInPercent;
                 printf("Setting speed: %d\n", relativeSpeed);
                 movementCtrl.SetRelativeSpeed(relativeSpeed);
+                break;
             case CMD_MOVE_FORWARD:
                 movementCtrl.MoveForwardRelative(relativeSpeed);
                 break;

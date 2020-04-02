@@ -46,21 +46,34 @@ void JoystickController::handleNewEvent(JoystickEvent& event) {
     memcpy(commandEvent.AxesStatus, _axes, sizeof(_axes));
     memcpy(commandEvent.ButtonStatus, _buttons, sizeof(_buttons));
 
-    // computing relative speed for all motors.
-    if (event.number == AXIS_L2) {
-        // just reducing speed
+    // Handling speed commands.
+    if ((event.number == BTN_L2 && _buttons[event.number] == false) || 
+        (event.number == BTN_R2 && _buttons[event.number] == false)) {
+        // setting speed to normal.
         commandEvent.CommandCode = CMD_SET_SPEED;
-        auto percent = -map((int)_axes[AXIS_L2], -32767, 32767, 0, 100);
-        commandEvent.GlobalSpeedInPercent = percent;
+        commandEvent.GlobalSpeedInPercent = 0;
         sendCommand(commandEvent);
         return;
     }
+    // computing relative speed for all motors.
+    if (event.number == AXIS_L2) {
+        if (_buttons[BTN_L2]) {
+            // just reducing speed
+            commandEvent.CommandCode = CMD_SET_SPEED;
+            auto percent = -map((int)_axes[AXIS_L2], -32767, 32767, 0, 100);
+            commandEvent.GlobalSpeedInPercent = percent;
+            sendCommand(commandEvent);
+        }
+        return;
+    }
     if (event.number == AXIS_R2) {
-        // just incresing speed
-        commandEvent.CommandCode = CMD_SET_SPEED;
-        auto percent = map((int)_axes[AXIS_R2], -32767, 32767, 0, 100);
-        commandEvent.GlobalSpeedInPercent = percent;
-        sendCommand(commandEvent);
+        if (_buttons[BTN_R2]) {
+            // just incresing speed
+            commandEvent.CommandCode = CMD_SET_SPEED;
+            auto percent = map((int)_axes[AXIS_R2], -32767, 32767, 0, 100);
+            commandEvent.GlobalSpeedInPercent = percent;
+            sendCommand(commandEvent);
+        }
         return;
     }
 

@@ -23,8 +23,9 @@ int JoystickController::Start() {
 
 template<typename T> T map(T val, T ir1, T ir2, T fr1, T fr2)
 {
-    T pos = (val - ir1) / ( ir2 - ir1);
-    return (fr2 - fr1) * pos + fr1;
+    float pos = (float)(val - ir1) / (float)( ir2 - ir1);
+    auto result = (float)(fr2 - fr1) * pos + (float)fr1;
+    return (T) result;
 }
 
 void JoystickController::handleNewEvent(JoystickEvent& event) {
@@ -49,13 +50,18 @@ void JoystickController::handleNewEvent(JoystickEvent& event) {
     if (event.number == AXIS_L2) {
         // just reducing speed
         commandEvent.CommandCode = CMD_SET_SPEED;
-        int percent = -map((int)_axes[AXIS_L2], -32768, 32767, 0, 100);
+        auto percent = -map((int)_axes[AXIS_L2], -32767, 32767, 0, 100);
         commandEvent.GlobalSpeedInPercent = percent;
         sendCommand(commandEvent);
-
         return;
     }
     if (event.number == AXIS_R2) {
+        // just incresing speed
+        commandEvent.CommandCode = CMD_SET_SPEED;
+        auto percent = map((int)_axes[AXIS_R2], -32767, 32767, 0, 100);
+        commandEvent.GlobalSpeedInPercent = percent;
+        sendCommand(commandEvent);
+        return;
     }
 
     // Now we need to process the position

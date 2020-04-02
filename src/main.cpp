@@ -62,7 +62,7 @@ int main(int argc, const char** argv) {
         pipe_fd[1]
     );
 
-    int pid = fork();
+    auto pid = fork();
     if (pid == -1) {
         perror("Error forking processes.");
         exit(1);
@@ -80,9 +80,9 @@ int main(int argc, const char** argv) {
     for (;;) {
         // We should constantly read the pipe.
 
-        int buffer_size = 256;
+        auto buffer_size = 256;
         char buffer[buffer_size];
-        int bytes_read = read(pipe_fd[0], buffer, buffer_size-1);
+        auto bytes_read = read(pipe_fd[0], buffer, buffer_size-1);
 
         JoystickCommandEvent event;
         if (bytes_read == sizeof(event)) {

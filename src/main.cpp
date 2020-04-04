@@ -2,6 +2,7 @@
 #include <signal.h>
 #include "movement_ctrl.h"
 #include "joystick_ctrl.h"
+#include "log_ctrl.h"
 #include <wiringPi.h>
 #include <memory>
 #include <unistd.h>
@@ -23,6 +24,8 @@
 #define REAR_RIGHT_MOTOR_EN1 9
 #define REAR_RIGHT_MOTOR_EN2 10
 
+#define PIPE_BUFFER_SIZE 256
+
 MovementController movementCtrl(
     FRONT_LEFT_MOTOR_PWM, FRONT_LEFT_MOTOR_EN1, FRONT_LEFT_MOTOR_EN2,
     FRONT_RIGHT_MOTOR_PWM, FRONT_RIGHT_MOTOR_EN1, FRONT_RIGHT_MOTOR_EN2,
@@ -30,6 +33,8 @@ MovementController movementCtrl(
     REAR_RIGHT_MOTOR_PWM, REAR_RIGHT_MOTOR_EN1, REAR_RIGHT_MOTOR_EN2,
     50 
 );
+
+LogContrller logController;
 
 void CtrlCSignalHandler(int s) {
     printf("Caught signal %d\n", s);
@@ -48,7 +53,7 @@ int main(int argc, const char** argv) {
 
     sigaction(SIGINT, &sigIntHandler, NULL);
 
-    std::cout << "Setting up" << std::endl;
+    logController.printf("Initializing %s\n", "carboy");
 
     // Initializing joystick
     // Creating a pipe.
@@ -70,7 +75,7 @@ int main(int argc, const char** argv) {
     if ( pid == 0 ) {
         // child process.
         while ( joystickCtrl.Start() < 0) {
-            printf("Error starting joystick.\n");
+            logController.printf("Error starting joystick.\n");
             sleep(1);
         }
     }
@@ -80,9 +85,8 @@ int main(int argc, const char** argv) {
     for (;;) {
         // We should constantly read the pipe.
 
-        auto buffer_size = 256;
-        char buffer[buffer_size];
-        auto bytes_read = read(pipe_fd[0], buffer, buffer_size-1);
+        char buffer[PIPE_BUFFER_SIZE];
+        auto bytes_read = read(pipe_fd[0], buffer, PIPE_BUFFER_SIZE-1);
 
         JoystickCommandEvent event;
         if (bytes_read == sizeof(event)) {

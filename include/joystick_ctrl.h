@@ -55,8 +55,8 @@ public:
         _path(std::string(path)), _pipe_fd(pipe_fd){};
     int Start();
 private:
-    int _pipe_fd;
     std::string _path;
+    int _pipe_fd;
 
     // These are the states of the joystick
     bool _buttons[NUM_OF_BUTTONS];

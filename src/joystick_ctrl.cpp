@@ -1,4 +1,4 @@
-#include "JoystickCtrl.h"
+#include "joystick_ctrl.h"
 #include <unistd.h>
 #include <string.h>
 

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <signal.h>
-#include "MovementCtrl.h"
-#include "JoystickCtrl.h"
+#include "movement_ctrl.h"
+#include "joystick_ctrl.h"
 #include <wiringPi.h>
 #include <memory>
 #include <unistd.h>

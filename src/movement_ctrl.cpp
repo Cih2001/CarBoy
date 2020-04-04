@@ -1,8 +1,8 @@
 #include "movement_ctrl.h"
+#include "global.h"
 #include <wiringPi.h>
 #include <softPwm.h>
 #include <pca9685.h>
-#include <iostream>
 
 MovementController::MovementController(
     const unsigned int flPwm, const unsigned int flEN1, const unsigned int flEN2,         
@@ -80,7 +80,7 @@ void MovementController::MoveForwardRelative(int relativeSpeed) {
     relativeSpeed = (relativeSpeed < -100) ? -100 : relativeSpeed;
     int delta = (int)((float)((relativeSpeed > 0) ? _diffToTopSpeed : _diffToBottomSpeed) * (float) relativeSpeed / 100.0);
     int speed = (_defaultSpeed + delta);
-    printf("Move forward relative: %d\n", speed);
+    logController.printf("Move forward relative: %d\n", speed);
     this->MoveForward(speed);
 }
 
@@ -89,7 +89,7 @@ void MovementController::MoveBackwardRelative(int relativeSpeed) {
     relativeSpeed = (relativeSpeed < -100) ? -100 : relativeSpeed;
     int delta = (int)((float)((relativeSpeed > 0) ? _diffToTopSpeed : _diffToBottomSpeed) * (float) relativeSpeed / 100.0);
     int speed = (_defaultSpeed + delta);
-    printf("Move backward relative: %d\n", speed);
+    logController.printf("Move backward relative: %d\n", speed);
     this->MoveBackward(speed);
 }
 

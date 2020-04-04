@@ -1,8 +1,8 @@
 #include <iostream>
 #include <signal.h>
+#include "global.h"
 #include "movement_ctrl.h"
 #include "joystick_ctrl.h"
-#include "log_ctrl.h"
 #include <wiringPi.h>
 #include <memory>
 #include <unistd.h>
@@ -34,10 +34,8 @@ MovementController movementCtrl(
     50 
 );
 
-LogContrller logController;
-
 void CtrlCSignalHandler(int s) {
-    printf("Caught signal %d\n", s);
+    logController.printf("Caught signal %d\n", s);
     movementCtrl.StopAll();
     movementCtrl.ResetPWM();
     exit(1);
@@ -94,7 +92,7 @@ int main(int argc, const char** argv) {
             switch (event.CommandCode) {
             case CMD_SET_SPEED:
                 relativeSpeed = event.GlobalSpeedInPercent;
-                printf("Setting speed: %d\n", relativeSpeed);
+                logController.printf("Setting speed: %d\n", relativeSpeed);
                 movementCtrl.SetRelativeSpeed(relativeSpeed);
                 break;
             case CMD_MOVE_FORWARD:

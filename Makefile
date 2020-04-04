@@ -6,7 +6,7 @@ LDFLAGS :=  -lwiringPi -lwiringPiPca9685 -lncurses
 CPPFLAGS := -I./include
 CXXFLAGS := -g -Wall 
 
-all: clean carboy
+all: carboy
 
 carboy: $(OBJ_FILES)
 	g++ $(LDFLAGS) -o $@ $^

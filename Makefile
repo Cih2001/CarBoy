@@ -4,7 +4,7 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 LDFLAGS :=  -lwiringPi -lwiringPiPca9685 -lncurses
 CPPFLAGS := -I./include
-CXXFLAGS := -g -Wall 
+CXXFLAGS := -g -Wall -c -std=c++2a
 
 all: carboy
 
@@ -12,7 +12,7 @@ carboy: $(OBJ_FILES)
 	g++ $(LDFLAGS) -o $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	g++ $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
 clean: 
 	rm -f $(OBJ_DIR)/*

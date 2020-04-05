@@ -1,37 +1,93 @@
 #include "log_ctrl.h"
 #include <iostream>
 
-
-FramedWindow::FramedWindow(int x, int y, int width, int height,
-        std::string title) :
-    Window(x, y, width, height) {
-    init_pair(1, COLOR_RED, COLOR_BLACK);
-    
-    title_ = title;
-    drawBorders();
-    setMargin(1);
-    mmove(0, 0);
-    refreshWindow();
+Object::Object(std::shared_ptr<Window> parent, 
+    unsigned int x,
+    unsigned int y,
+    unsigned int width,
+    unsigned int height) {
+    x_ = x;
+    y_ = y;
+    width_ = width;
+    height_ = height;
+    parent_ = parent;
 }
 
-void FramedWindow::drawBorders() {
-    wattron(wnd_, COLOR_PAIR(1));
-    wborder(wnd_, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
+/////////////////////////////////////////////////////////
+// Frame implementations
+/////////////////////////////////////////////////////////
+
+Frame::Frame(std::shared_ptr<Window> parent,
+        unsigned int x,
+        unsigned int y,
+        unsigned int width,
+        unsigned int height,
+        std::string title) :
+    Object(parent, x, y, width, height) {
+    title_ = title;
+}
+
+void Frame::redraw() {
+    wattron(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
+    wborder(parent_->wnd_, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
     // Draw Title
     std::string title = " " + title_ + " ";
     int start = (width_ - title.length() - 2) / 2;
-    move(start , 0);
-    waddch(wnd_, ACS_RTEE);
-    wattroff(wnd_, COLOR_PAIR(1));
-    wprintw(wnd_, title.c_str());
-    wattron(wnd_, COLOR_PAIR(1));
-    waddch(wnd_, ACS_LTEE);
-    wattroff(wnd_, COLOR_PAIR(1));
-    refreshWindow();
+    parent_->move(start , 0);
+    waddch(parent_->wnd_, ACS_RTEE);
+    wattroff(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
+    wprintw(parent_->wnd_, title.c_str());
+    wattron(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
+    waddch(parent_->wnd_, ACS_LTEE);
+    wattroff(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
 }
 
+/////////////////////////////////////////////////////////
+// AutoScrollLabel implementations
+/////////////////////////////////////////////////////////
 
-Window::Window(int x, int y, int width, int height) {
+AutoScrollLabel::AutoScrollLabel(
+    std::shared_ptr<Window> parent,
+    unsigned int x,
+    unsigned int y,
+    unsigned int width,
+    unsigned int height
+) : Object(parent, x, y, width, height) {
+
+}
+
+void AutoScrollLabel::redraw() {
+    int count = lines_.size();
+    auto blank = std::string(width_, ' ');
+
+    for ( int i = 0; i < count; i++) {
+        // First we need to clear the row.
+        parent_->move(x_, y_ + i);
+        wprintw(parent_->wnd_, blank.c_str());
+
+        // Now we write the text
+        parent_->move(x_, y_ + i);
+        wprintw(parent_->wnd_, lines_[i].c_str());
+    }
+}
+
+void AutoScrollLabel::println(std::string line) {
+    line.erase(line.find_last_not_of(" \n\r\t") + 1);
+    lines_.push_back(line);
+    while (lines_.size() > height_)
+        lines_.pop_front();
+}
+
+/////////////////////////////////////////////////////////
+// Window implementations
+/////////////////////////////////////////////////////////
+
+Window::Window(
+    unsigned int x,
+    unsigned int y,
+    unsigned int width,
+    unsigned int height
+) {
     x_ = x;
     y_ = y;
     width_ = width;
@@ -41,7 +97,7 @@ Window::Window(int x, int y, int width, int height) {
     wnd_ = newwin(height, width, y, x);
 }
 
-void Window::setMargin(int margin) {
+void Window::setMargin(unsigned int margin) {
     margin_ = margin;
 }
 
@@ -50,59 +106,57 @@ Window::~Window() {
 }
 
 void Window::refreshWindow() {
+    for (auto child : children_) {
+        child->redraw();
+    }
     wrefresh(wnd_);
-    // refresh();
 }
 
-int Window::getX0() {
+unsigned int Window::getX0() {
     return x_;
 }
 
-int Window::getX1() {
+unsigned int Window::getX1() {
     return x_ + width_;
 }
 
-int Window::getY0() {
+unsigned int Window::getY0() {
     return y_;
 }
 
-int Window::getY1() {
+unsigned int Window::getY1() {
     return y_ + height_;
 }
 
-void Window::move(int x, int y) {
+void Window::move(unsigned int x, unsigned int y) {
     cursor_x_ = x;
     cursor_y_ = y;
     wmove(wnd_, y, x);
 }
 
-void Window::mmove(int x, int y) {
+void Window::mmove(unsigned int x, unsigned int y) {
     move(x + margin_, y + margin_);
 }
 
-void Window::println(std::string line) {
-    line.erase(line.find_last_not_of(" \n\r\t") + 1);
-    wprintw(wnd_, "%s", line.c_str());
-    mmove(0, getmCursorY() + 1);
-    refreshWindow();
-}
-
-int Window::getCursorX() {
+unsigned int Window::getCursorX() {
     return cursor_x_;
 }
 
-int Window::getCursorY() {
+unsigned int Window::getCursorY() {
     return cursor_y_;
 }
 
-int Window::getmCursorX() {
+unsigned int Window::getmCursorX() {
     return cursor_x_ - margin_;
 }
 
-int Window::getmCursorY() {
+unsigned int Window::getmCursorY() {
     return cursor_y_ - margin_;
 }
 
+void Window::addObject(std::shared_ptr<Object> obj) {
+    children_.push_back(obj); 
+}
 
 /////////////////////////////////////////////////////////
 // LogContrller implementations
@@ -110,26 +164,30 @@ int Window::getmCursorY() {
 
 LogContrller::LogContrller() {
     // Initializing ncurses
-    setlocale(LC_ALL, "");
-    initscr();
-    start_color();
-    // cbreak();
-    // noecho();
-    // nonl();
-    // intrflush(stdscr, false);
-    // keypad(stdscr, true);
-    // refresh();
+    LogContrller::initializeNcurses();
 
     // Getting screen size.
     getmaxyx(stdscr, screen_height_, screen_width_);
 
     // Create log window.
-    right_window_ = std::make_unique<FramedWindow>(
-        screen_width_/2,0,screen_width_/2, screen_height_, "Logs"
+    right_window_ = std::make_shared<Window>(
+        screen_width_ / 2, 0, screen_width_ / 2, screen_height_
     );
+    auto frame = std::make_shared<Frame> (
+        right_window_,
+        0 , 0, screen_width_ / 2, screen_height_,
+        "Logs"
+    );
+    auto auto_scroll_label = std::make_shared<AutoScrollLabel> (
+        right_window_,
+        1, 1, screen_width_ / 2 - 2, screen_height_ - 2
+    );
+    right_window_->addObject(frame);
+    right_window_->addObject(auto_scroll_label);
+    right_window_->refreshWindow();
 
-    left_window_ = std::make_unique<FramedWindow>(
-        0,0,screen_width_/2, screen_height_, "Stats"
+    left_window_ = std::make_shared<Window>(
+        0, 0, screen_width_ / 2, screen_height_
     );
 }
 
@@ -144,7 +202,30 @@ int LogContrller::printf(const char *format, ...) {
     int res = vsprintf(buff, format, args);
     va_end(args);
     std::string str(buff);
-
-    right_window_->println(str);
+    auto label = std::static_pointer_cast<AutoScrollLabel>(right_window_->children_[1]);
+    label->println(str);
+    right_window_->refreshWindow();
     return res;
+}
+
+// Initializing static boolean variable.
+bool LogContrller::isNcursesInitialized = false;
+
+// An static function to initialize ncurses only once.
+void LogContrller::initializeNcurses() {
+    if ( isNcursesInitialized ) return;
+
+    setlocale(LC_ALL, "");
+    initscr();
+    start_color();
+    cbreak();
+    noecho();
+    nonl();
+    intrflush(stdscr, false);
+    keypad(stdscr, true);
+
+    // Initializing color pairs.
+    init_pair(BORDERS_COLOR, COLOR_RED, COLOR_BLACK);
+
+    isNcursesInitialized = true;
 }

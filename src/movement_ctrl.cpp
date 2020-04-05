@@ -42,7 +42,7 @@ MovementController::MovementController(
 	// Setting up PCA9685
 	_pca_fd = pca9685Setup(PCA_PIN_BASE, 0x40, _pwmFrequency);
 	if (_pca_fd < 0) {
-		printf("Error setting up PCA9685\n");
+		perror("Error setting up PCA9685\n");
 		exit(1);
 	}
 

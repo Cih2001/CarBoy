@@ -2,6 +2,12 @@
 #define GLOBAL_H
 #include <log_ctrl.h>
 
-extern LogContrller logController;
+#ifdef MovementCtrl
+  #define EXTERN
+#else
+  #define EXTERN extern
+#endif
+
+EXTERN LogContrller logController;
 
 #endif

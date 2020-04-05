@@ -20,7 +20,7 @@ public:
     void println(std::string line);
 
     // Refreshes the window.
-    void refresh();
+    void refreshWindow();
 
     void setMargin(int margin = 0);
     int getX0();
@@ -34,6 +34,12 @@ protected:
 
     // Margin is used to restrict printing area, padding from borders.
     int margin_ = 0;
+
+    int getCursorX();   // returns relative cursor x from the window x
+    int getCursorY();   // returns relative cursor y from the window y
+    int getmCursorX();  // returns relative cursor x from the margin x
+    int getmCursorY();  // returns relative cursor y from the margin y
+
 };
 
 class FramedWindow : public Window {

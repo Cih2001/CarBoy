@@ -1,28 +1,33 @@
 #include "log_ctrl.h"
 #include <iostream>
 
+
 FramedWindow::FramedWindow(int x, int y, int width, int height,
         std::string title) :
     Window(x, y, width, height) {
-
+    init_pair(1, COLOR_RED, COLOR_BLACK);
+    
     title_ = title;
     drawBorders();
     setMargin(1);
     mmove(0, 0);
-    refresh();
+    refreshWindow();
 }
 
 void FramedWindow::drawBorders() {
+    wattron(wnd_, COLOR_PAIR(1));
     wborder(wnd_, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
-    
     // Draw Title
     std::string title = " " + title_ + " ";
     int start = (width_ - title.length() - 2) / 2;
     move(start , 0);
     waddch(wnd_, ACS_RTEE);
+    wattroff(wnd_, COLOR_PAIR(1));
     wprintw(wnd_, title.c_str());
+    wattron(wnd_, COLOR_PAIR(1));
     waddch(wnd_, ACS_LTEE);
-    refresh();
+    wattroff(wnd_, COLOR_PAIR(1));
+    refreshWindow();
 }
 
 
@@ -44,8 +49,9 @@ Window::~Window() {
     delwin(wnd_);
 }
 
-void Window::refresh() {
+void Window::refreshWindow() {
     wrefresh(wnd_);
+    // refresh();
 }
 
 int Window::getX0() {
@@ -77,19 +83,42 @@ void Window::mmove(int x, int y) {
 void Window::println(std::string line) {
     line.erase(line.find_last_not_of(" \n\r\t") + 1);
     wprintw(wnd_, "%s", line.c_str());
-    mmove(0,cursor_y_);
-    refresh();
+    mmove(0, getmCursorY() + 1);
+    refreshWindow();
 }
+
+int Window::getCursorX() {
+    return cursor_x_;
+}
+
+int Window::getCursorY() {
+    return cursor_y_;
+}
+
+int Window::getmCursorX() {
+    return cursor_x_ - margin_;
+}
+
+int Window::getmCursorY() {
+    return cursor_y_ - margin_;
+}
+
+
+/////////////////////////////////////////////////////////
+// LogContrller implementations
+/////////////////////////////////////////////////////////
 
 LogContrller::LogContrller() {
     // Initializing ncurses
     setlocale(LC_ALL, "");
     initscr();
-    cbreak();
-    noecho();
-    nonl();
-    intrflush(stdscr, false);
-    keypad(stdscr, true);
+    start_color();
+    // cbreak();
+    // noecho();
+    // nonl();
+    // intrflush(stdscr, false);
+    // keypad(stdscr, true);
+    // refresh();
 
     // Getting screen size.
     getmaxyx(stdscr, screen_height_, screen_width_);

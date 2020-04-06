@@ -4,6 +4,7 @@
 #include <softPwm.h>
 #include <pca9685.h>
 
+
 MovementController::MovementController(
     const unsigned int flPwm, const unsigned int flEN1, const unsigned int flEN2,         
     const unsigned int frPwm, const unsigned int frEN1, const unsigned int frEN2,         
@@ -124,6 +125,7 @@ void MovementController::moveMotor(const unsigned int idx, int speed, MovementDi
     setMotorSpeed(idx, speed, dir);
     
     if (dir == FORWARD) {
+        logController.updateMotorSpeed(idx, speed);
         pwmWrite(
             PCA_PIN_BASE + _motorsPwmPins[idx],
             _motorsSpeed[idx]
@@ -131,6 +133,7 @@ void MovementController::moveMotor(const unsigned int idx, int speed, MovementDi
         digitalWrite(PCA_PIN_BASE + _motorsEN1Pins[idx], HIGH);
         digitalWrite(PCA_PIN_BASE + _motorsEN2Pins[idx], LOW);
     } else {
+        logController.updateMotorSpeed(idx, -speed);
         // Move motor backward:
         pwmWrite(
             PCA_PIN_BASE + _motorsPwmPins[idx],
@@ -143,6 +146,7 @@ void MovementController::moveMotor(const unsigned int idx, int speed, MovementDi
 }
 
 void MovementController::stopMotor(const unsigned int idx) {
+    logController.updateMotorSpeed(idx, 0);
     if (idx >= NUM_OF_MOTORS ) {
         return;
     }

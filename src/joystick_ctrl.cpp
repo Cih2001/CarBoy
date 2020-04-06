@@ -1,7 +1,7 @@
 #include "joystick_ctrl.h"
+#include "global.h"
 #include <unistd.h>
 #include <string.h>
-
 
 int JoystickController::Start() {
     // Initializing joystick
@@ -19,13 +19,6 @@ int JoystickController::Start() {
         }
     }
     return 0;
-}
-
-template<typename T> T map(T val, T ir1, T ir2, T fr1, T fr2)
-{
-    float pos = (float)(val - ir1) / (float)( ir2 - ir1);
-    auto result = (float)(fr2 - fr1) * pos + (float)fr1;
-    return (T) result;
 }
 
 void JoystickController::handleNewEvent(JoystickEvent& event) {

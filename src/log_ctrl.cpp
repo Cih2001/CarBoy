@@ -1,4 +1,5 @@
 #include "log_ctrl.h"
+#include "global.h"
 #include <iostream>
 
 Object::Object(std::shared_ptr<Window> parent, 
@@ -42,17 +43,36 @@ void rectangle(WINDOW* wnd, int y1, int x1, int y2, int x2)
 void Frame::redraw() {
     wattron(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
     rectangle(parent_->wnd_, y_, x_, y_ + height_ - 1, x_ + width_ - 1);	
-    
+   
+    if (title_.empty()) {
+        wattroff(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
+        return;
+    }
     // Draw Title
     std::string title = " " + title_ + " ";
-    int start = (width_ - title.length() - 2) / 2;
-    parent_->move(start , 0);
+    int start = 0; 
+    switch (title_alignment_) {
+    case ALIGN_CENTER:
+        start = x_ + (width_ - title.length() - 2) / 2;
+        break;
+    case ALIGN_LEFT:
+        start = x_ + 2;
+        break;
+    case ALIGN_RIGHT:
+        start = x_ + (width_ - title.length() - 4);
+        break;
+    }
+    parent_->move(start , y_);
     waddch(parent_->wnd_, ACS_RTEE);
     wattroff(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
     wprintw(parent_->wnd_, title.c_str());
     wattron(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
     waddch(parent_->wnd_, ACS_LTEE);
     wattroff(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
+}
+
+void Frame::setAlignment(Alignment alignment) {
+    title_alignment_ = alignment;
 }
 
 /////////////////////////////////////////////////////////
@@ -179,6 +199,40 @@ std::shared_ptr<Object> Window::getObjectByName(std::string name) {
 }
 
 /////////////////////////////////////////////////////////
+// HorizentalGauge implementations
+/////////////////////////////////////////////////////////
+
+HorizentalGauge::HorizentalGauge(
+    std::shared_ptr<Window> parent,
+    unsigned int x,
+    unsigned int y,
+    unsigned int width,
+    unsigned int height,
+    int min, int max
+) : Object(parent, x, y, width, height) {
+    min_ = min;
+    max_ = max;
+}
+
+void HorizentalGauge::redraw() {
+    // Clean gauge
+    mvwhline(parent_->wnd_, y_, x_ , ' ', width_);
+
+    auto mapped_val = map(value_, min_, max_, - (int)width_ / 2, (int)width_ / 2);
+    if (mapped_val > 0) {
+        mvwhline(parent_->wnd_, y_, x_ + width_ / 2, '|', mapped_val);
+    } else {
+        mvwhline(parent_->wnd_, y_, x_ + width_ / 2 + mapped_val, '|', -mapped_val);
+    }
+    mvwaddch(parent_->wnd_, y_, x_ + width_ / 2, ACS_CKBOARD);
+}
+
+void HorizentalGauge::setValue(int value) {
+    if ( value >= min_ && value <= max_) 
+        value_ = value;
+}
+
+/////////////////////////////////////////////////////////
 // LogContrller implementations
 /////////////////////////////////////////////////////////
 
@@ -215,6 +269,36 @@ LogContrller::LogContrller() {
         "Stats"
     );
     left_window_->addElement(Element("frmMain", left_frame));
+    for (unsigned int i = 0; i < 4; i++) {
+        std::string gauge_title;
+        switch (i) {
+        case 0:
+            gauge_title = "Front Left Motor";
+            break;
+        case 1:
+            gauge_title = "Front Right Motor";
+            break;
+        case 2:
+            gauge_title = "Rear Left Motor";
+            break;
+        case 3:
+            gauge_title = "Rear Right  Motor";
+            break;
+        }
+        auto gauge_border = std::make_shared<Frame> (
+            left_window_,
+            2 , 2 + i * 4, screen_width_ / 2 - 4, 3,
+            gauge_title
+        );
+        gauge_border->setAlignment(ALIGN_LEFT);
+        auto gauge = std::make_shared<HorizentalGauge> (
+            left_window_,
+            3 , 3 + i * 4, screen_width_ / 2 - 6, 1,
+            -4096, 4096
+        );
+        left_window_->addElement(Element("fraGague" + std::to_string(i), gauge_border));
+        left_window_->addElement(Element("gauge" + std::to_string(i), gauge));
+    }
     left_window_->refreshWindow();
 }
 
@@ -238,6 +322,18 @@ int LogContrller::printf(const char *format, ...) {
     return res;
 }
 
+void LogContrller::updateMotorSpeed(unsigned int idx, int speed) {
+    speed = (speed < -4098) ? -4098 : speed;
+    speed = (speed > 4098) ? 4098 : speed;
+
+    auto gauge = std::static_pointer_cast<HorizentalGauge>(
+        left_window_->getObjectByName("gauge" + std::to_string(idx))
+    );
+    if (gauge != nullptr)
+        gauge->setValue(speed);
+    left_window_->refreshWindow();
+}
+
 // Initializing static boolean variable.
 bool LogContrller::isNcursesInitialized = false;
 
@@ -251,6 +347,7 @@ void LogContrller::initializeNcurses() {
     cbreak();
     noecho();
     nonl();
+    curs_set(0);
     intrflush(stdscr, false);
     keypad(stdscr, true);
 

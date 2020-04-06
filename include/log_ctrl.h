@@ -81,6 +81,12 @@ protected:
 
 };
 
+enum Alignment {
+    ALIGN_LEFT,
+    ALIGN_CENTER,
+    ALIGN_RIGHT
+};
+
 class Frame : public Object {
 public:
     explicit Frame(std::shared_ptr<Window> parent,
@@ -92,9 +98,11 @@ public:
     );
 
     void redraw() override;
+    void setAlignment(Alignment);
 
 private:
     std::string title_;
+    Alignment title_alignment_ = ALIGN_CENTER;
 };
 
 class AutoScrollLabel : public Object {
@@ -114,6 +122,25 @@ private:
     std::deque<std::string> lines_;
 };
 
+class HorizentalGauge : public Object {
+public:
+    explicit HorizentalGauge(
+        std::shared_ptr<Window> parent,
+        unsigned int x,
+        unsigned int y,
+        unsigned int width,
+        unsigned int height,
+        int min, int max
+    );
+    
+    void redraw() override;
+    void setValue(int);
+    int getValue();
+
+private:
+    int min_, max_, value_ = 0;
+};
+
 class LogContrller {
 public:
     // side note: technically everything in LogContrller should be static. We will
@@ -128,6 +155,7 @@ public:
     ~LogContrller();
 
     int printf(const char *format, ...);
+    void updateMotorSpeed(unsigned int idx, int speed);
 
 private:
     unsigned int screen_width_;

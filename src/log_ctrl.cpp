@@ -209,7 +209,13 @@ LogContrller::LogContrller() {
     left_window_ = std::make_shared<Window>(
         0, 0, screen_width_ / 2, screen_height_
     );
-    
+    auto left_frame = std::make_shared<Frame> (
+        left_window_,
+        0 , 0, screen_width_ / 2, screen_height_,
+        "Stats"
+    );
+    left_window_->addElement(Element("frmMain", left_frame));
+    left_window_->refreshWindow();
 }
 
 LogContrller::~LogContrller() {
@@ -226,7 +232,8 @@ int LogContrller::printf(const char *format, ...) {
     auto label = std::static_pointer_cast<AutoScrollLabel>(
         right_window_->getObjectByName("auto1")
     );
-    label->println(str);
+    if (label != nullptr)
+        label->println(str);
     right_window_->refreshWindow();
     return res;
 }

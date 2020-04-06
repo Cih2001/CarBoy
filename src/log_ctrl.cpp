@@ -27,9 +27,22 @@ Frame::Frame(std::shared_ptr<Window> parent,
     title_ = title;
 }
 
+void rectangle(WINDOW* wnd, int y1, int x1, int y2, int x2)
+{
+    mvwhline(wnd, y1, x1, 0, x2-x1);
+    mvwhline(wnd, y2, x1, 0, x2-x1);
+    mvwvline(wnd, y1, x1, 0, y2-y1);
+    mvwvline(wnd, y1, x2, 0, y2-y1);
+    mvwaddch(wnd, y1, x1, ACS_ULCORNER);
+    mvwaddch(wnd, y2, x1, ACS_LLCORNER);
+    mvwaddch(wnd, y1, x2, ACS_URCORNER);
+    mvwaddch(wnd, y2, x2, ACS_LRCORNER);
+}
+
 void Frame::redraw() {
     wattron(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
-    wborder(parent_->wnd_, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
+    rectangle(parent_->wnd_, y_, x_, y_ + height_ - 1, x_ + width_ - 1);	
+    
     // Draw Title
     std::string title = " " + title_ + " ";
     int start = (width_ - title.length() - 2) / 2;
@@ -62,8 +75,7 @@ void AutoScrollLabel::redraw() {
 
     for ( int i = 0; i < count; i++) {
         // First we need to clear the row.
-        parent_->move(x_, y_ + i);
-        wprintw(parent_->wnd_, blank.c_str());
+        mvwhline(parent_->wnd_, y_ + i, x_, ' ', width_);
 
         // Now we write the text
         parent_->move(x_, y_ + i);

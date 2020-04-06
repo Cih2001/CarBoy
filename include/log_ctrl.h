@@ -61,6 +61,10 @@ public:
 
 protected:
     unsigned int x_, y_, width_, height_;
+
+    // TODO: so far in the current app we don't need these. even in some places,
+    // we change the window cursor position without updating them.
+    // However, I keep them for now, maybe in the future we need them.
     unsigned int cursor_x_, cursor_y_;
 
     // Margin is used to restrict printing area, padding from borders.

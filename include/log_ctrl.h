@@ -7,6 +7,7 @@
 #include <vector>
 #include <deque>
 
+
 enum ColorPairs {
     BORDERS_COLOR = 1
 };
@@ -27,6 +28,7 @@ protected:
     unsigned int x_, y_, width_, height_;
 };
 
+typedef std::pair<std::string, std::shared_ptr<Object>> Element;
 
 class Window {
 public:
@@ -54,10 +56,12 @@ public:
     unsigned int getX1();
     unsigned int getY1();
 
-    void addObject(std::shared_ptr<Object>);
+    void addElement(Element);
+
+    std::shared_ptr<Object> getObjectByName(std::string);
 
     // TODO: should be moved to private section and whole structure should be changed.
-    std::vector<std::shared_ptr<Object>> children_;
+    std::vector<Element> children_;
 
 protected:
     unsigned int x_, y_, width_, height_;

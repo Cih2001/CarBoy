@@ -119,7 +119,7 @@ Window::~Window() {
 
 void Window::refreshWindow() {
     for (auto child : children_) {
-        child->redraw();
+        child.second->redraw();
     }
     wrefresh(wnd_);
 }
@@ -166,8 +166,16 @@ unsigned int Window::getmCursorY() {
     return cursor_y_ - margin_;
 }
 
-void Window::addObject(std::shared_ptr<Object> obj) {
-    children_.push_back(obj); 
+void Window::addElement(Element elm) {
+    children_.push_back(elm); 
+}
+
+std::shared_ptr<Object> Window::getObjectByName(std::string name) {
+    for (auto child : children_) {
+        if (child.first == name)
+            return child.second;
+    }
+    return nullptr;
 }
 
 /////////////////////////////////////////////////////////
@@ -194,13 +202,14 @@ LogContrller::LogContrller() {
         right_window_,
         1, 1, screen_width_ / 2 - 2, screen_height_ - 2
     );
-    right_window_->addObject(frame);
-    right_window_->addObject(auto_scroll_label);
+    right_window_->addElement(Element("frmMain", frame));
+    right_window_->addElement(Element("auto1", auto_scroll_label));
     right_window_->refreshWindow();
 
     left_window_ = std::make_shared<Window>(
         0, 0, screen_width_ / 2, screen_height_
     );
+    
 }
 
 LogContrller::~LogContrller() {
@@ -214,7 +223,9 @@ int LogContrller::printf(const char *format, ...) {
     int res = vsprintf(buff, format, args);
     va_end(args);
     std::string str(buff);
-    auto label = std::static_pointer_cast<AutoScrollLabel>(right_window_->children_[1]);
+    auto label = std::static_pointer_cast<AutoScrollLabel>(
+        right_window_->getObjectByName("auto1")
+    );
     label->println(str);
     right_window_->refreshWindow();
     return res;

@@ -22,7 +22,9 @@ public:
         unsigned int width,
         unsigned int height
     );
+    
     virtual void redraw() = 0;
+    virtual void clear();
 protected:
     std::shared_ptr<Window> parent_;
     unsigned int x_, y_, width_, height_;
@@ -130,7 +132,6 @@ public:
         unsigned int x,
         unsigned int y,
         unsigned int width,
-        unsigned int height,
         int min, int max
     );
     
@@ -140,6 +141,25 @@ public:
 
 private:
     int min_, max_, value_ = 0;
+};
+
+class Label: public Object {
+public:
+    explicit Label(
+        std::shared_ptr<Window> parent,
+        unsigned int x,
+        unsigned int y,
+        unsigned int width,
+        std::string caption
+    );
+
+    void redraw() override;
+    void setCaption(const std::string);
+    void setAlignment(Alignment);
+
+protected:
+    std::string caption_;
+    Alignment alignment_ = ALIGN_LEFT;
 };
 
 class LogContrller {

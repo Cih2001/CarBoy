@@ -15,6 +15,11 @@ Object::Object(std::shared_ptr<Window> parent,
     parent_ = parent;
 }
 
+void Object::clear() { 
+    for (unsigned int i = 0; i < height_; i++)
+        mvwhline(parent_->wnd_, y_ + i, x_ , ' ', width_);
+}
+
 /////////////////////////////////////////////////////////
 // Frame implementations
 /////////////////////////////////////////////////////////
@@ -42,6 +47,7 @@ void rectangle(WINDOW* wnd, int y1, int x1, int y2, int x2)
 }
 
 void Frame::redraw() {
+    this->clear();
     wattron(parent_->wnd_, COLOR_PAIR(BORDERS_COLOR));
     rectangle(parent_->wnd_, y_, x_, y_ + height_ - 1, x_ + width_ - 1);	
    
@@ -97,11 +103,9 @@ AutoScrollLabel::AutoScrollLabel(
 void AutoScrollLabel::redraw() {
     int count = lines_.size();
     auto blank = std::string(width_, ' ');
+    this->clear();
 
     for ( int i = 0; i < count; i++) {
-        // First we need to clear the row.
-        mvwhline(parent_->wnd_, y_ + i, x_, ' ', width_);
-
         // Now we write the text
         parent_->move(x_, y_ + i);
         wprintw(parent_->wnd_, lines_[i].c_str());
@@ -212,16 +216,14 @@ HorizentalGauge::HorizentalGauge(
     unsigned int x,
     unsigned int y,
     unsigned int width,
-    unsigned int height,
     int min, int max
-) : Object(parent, x, y, width, height) {
+) : Object(parent, x, y, width, 1) {
     min_ = min;
     max_ = max;
 }
 
 void HorizentalGauge::redraw() {
-    // Clean gauge
-    mvwhline(parent_->wnd_, y_, x_ , ' ', width_);
+    this->clear();
 
     auto mapped_val = map(value_, min_, max_, - (int)width_ / 2, (int)width_ / 2);
     if (mapped_val > 0) {
@@ -237,6 +239,46 @@ void HorizentalGauge::setValue(int value) {
         value_ = value;
 }
 
+/////////////////////////////////////////////////////////
+// Label implementations
+/////////////////////////////////////////////////////////
+
+Label::Label(
+    std::shared_ptr<Window> parent,
+    unsigned int x,
+    unsigned int y,
+    unsigned int width,
+    std::string caption
+) : Object(parent, x, y, width, 1) 
+{
+    caption_ = caption;
+}
+
+void Label::setCaption(const std::string caption) {
+    caption_ = caption;
+}
+
+void Label::redraw() {
+    this->clear();
+    unsigned int x;
+    switch (alignment_) {
+        case ALIGN_LEFT:
+            x = x_;
+            break;
+        case ALIGN_CENTER:
+            x = x_ + (width_ - caption_.size()) / 2;
+            break;
+        case ALIGN_RIGHT:
+            x = x_ + width_ - caption_.size();
+            break;
+    }
+    mvwprintw(parent_->wnd_, y_, x, "%s", caption_.c_str());
+    // Clean gauge
+}
+
+void Label::setAlignment(Alignment alignment) {
+    alignment_ = alignment;
+}
 /////////////////////////////////////////////////////////
 // LogContrller implementations
 /////////////////////////////////////////////////////////
@@ -298,12 +340,20 @@ LogContrller::LogContrller() {
         gauge_border->setAlignment(ALIGN_LEFT);
         auto gauge = std::make_shared<HorizentalGauge> (
             left_window_,
-            3 , 3 + i * 4, screen_width_ / 2 - 6, 1,
+            3 , 3 + i * 4, screen_width_ / 2 - 6,
             -4096, 4096
         );
         left_window_->addElement(Element("fraGague" + std::to_string(i), gauge_border));
         left_window_->addElement(Element("gauge" + std::to_string(i), gauge));
     }
+
+    auto lbl1 = std::make_shared<Label> (
+        left_window_,
+        3 , 20, screen_width_ / 2 - 6,
+        "Label 1"
+    );
+    lbl1->setAlignment(ALIGN_RIGHT);
+    left_window_->addElement(Element("lbl1", lbl1));
     left_window_->refreshWindow();
 }
 

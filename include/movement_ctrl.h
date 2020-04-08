@@ -52,7 +52,8 @@ private:
     unsigned int _motorsEN1Pins[NUM_OF_MOTORS];
     unsigned int _motorsEN2Pins[NUM_OF_MOTORS];
     int _motorsSpeed[NUM_OF_MOTORS];
-    unsigned int _defaultSpeed = (MAXIMUM_SPEED - MINIMUM_SPEED)/2 + MINIMUM_SPEED;
+    // unsigned int _defaultSpeed = (MAXIMUM_SPEED - MINIMUM_SPEED)/2 + MINIMUM_SPEED;
+    unsigned int _defaultSpeed = 1200;
     unsigned int _diffToTopSpeed = MAXIMUM_SPEED - _defaultSpeed;
     unsigned int _diffToBottomSpeed = _defaultSpeed - MINIMUM_SPEED;
     unsigned int _speed = _defaultSpeed;

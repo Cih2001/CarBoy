@@ -106,6 +106,7 @@ void MovementController::setMotorSpeed(
     _motorsSpeed[idx] = speed;
     _motorsState[idx] = (dir == FORWARD) ? MOVING_FORWARD : MOVING_BACKWARD;
 
+    logController.updateMotorSpeed(idx, (dir == FORWARD) ? speed : -speed);
 
 }
 void MovementController::MoveBackward(int speed) {
@@ -125,7 +126,6 @@ void MovementController::moveMotor(const unsigned int idx, int speed, MovementDi
     setMotorSpeed(idx, speed, dir);
     
     if (dir == FORWARD) {
-        logController.updateMotorSpeed(idx, speed);
         pwmWrite(
             PCA_PIN_BASE + _motorsPwmPins[idx],
             _motorsSpeed[idx]
@@ -133,7 +133,6 @@ void MovementController::moveMotor(const unsigned int idx, int speed, MovementDi
         digitalWrite(PCA_PIN_BASE + _motorsEN1Pins[idx], HIGH);
         digitalWrite(PCA_PIN_BASE + _motorsEN2Pins[idx], LOW);
     } else {
-        logController.updateMotorSpeed(idx, -speed);
         // Move motor backward:
         pwmWrite(
             PCA_PIN_BASE + _motorsPwmPins[idx],

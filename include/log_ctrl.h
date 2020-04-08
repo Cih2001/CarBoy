@@ -99,6 +99,7 @@ public:
 
     void redraw() override;
     void setAlignment(Alignment);
+    void setTitle(std::string);
 
 private:
     std::string title_;

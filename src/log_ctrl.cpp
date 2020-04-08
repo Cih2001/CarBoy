@@ -6,7 +6,8 @@ Object::Object(std::shared_ptr<Window> parent,
     unsigned int x,
     unsigned int y,
     unsigned int width,
-    unsigned int height) {
+    unsigned int height)
+{
     x_ = x;
     y_ = y;
     width_ = width;
@@ -19,12 +20,12 @@ Object::Object(std::shared_ptr<Window> parent,
 /////////////////////////////////////////////////////////
 
 Frame::Frame(std::shared_ptr<Window> parent,
-        unsigned int x,
-        unsigned int y,
-        unsigned int width,
-        unsigned int height,
-        std::string title) :
-    Object(parent, x, y, width, height) {
+    unsigned int x,
+    unsigned int y,
+    unsigned int width,
+    unsigned int height,
+    std::string title) : Object(parent, x, y, width, height)
+{
     title_ = title;
 }
 
@@ -73,6 +74,10 @@ void Frame::redraw() {
 
 void Frame::setAlignment(Alignment alignment) {
     title_alignment_ = alignment;
+}
+
+void Frame::setTitle(std::string title) {
+    title_ = title;
 }
 
 /////////////////////////////////////////////////////////
@@ -330,7 +335,33 @@ void LogContrller::updateMotorSpeed(unsigned int idx, int speed) {
         left_window_->getObjectByName("gauge" + std::to_string(idx))
     );
     if (gauge != nullptr)
+    {
         gauge->setValue(speed);
+    }
+
+    auto frame = std::static_pointer_cast<Frame>(
+        left_window_->getObjectByName("fraGague" + std::to_string(idx))
+    );
+    if (frame != nullptr)
+    {
+        std::string gauge_title;
+        switch (idx) {
+        case 0:
+            gauge_title = "Front Left Motor: ";
+            break;
+        case 1:
+            gauge_title = "Front Right Motor: ";
+            break;
+        case 2:
+            gauge_title = "Rear Left Motor: ";
+            break;
+        case 3:
+            gauge_title = "Rear Right  Motor: ";
+            break;
+        }
+        gauge_title += std::to_string(speed);
+        frame->setTitle(gauge_title);
+    }
     left_window_->refreshWindow();
 }
 

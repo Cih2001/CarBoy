@@ -12,7 +12,7 @@
 #define NUM_OF_MOTORS 4
 
 #define MINIMUM_SPEED 800
-#define MAXIMUM_SPEED 4098
+#define MAXIMUM_SPEED 4096
 
 enum MovementDirection {
     FORWARD, BACKWARD

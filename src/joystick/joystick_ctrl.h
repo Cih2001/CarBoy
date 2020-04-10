@@ -1,5 +1,5 @@
-#ifndef JoystickCntrl
-#define JoystickCntrl
+#ifndef CARBOY_JOYSTICK_JOYSTICK_CTRL_H_
+#define CARBOY_JOYSTICK_JOYSTICK_CTRL_H_
 
 #include <memory>
 #include <string>

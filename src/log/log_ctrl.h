@@ -1,5 +1,5 @@
-#ifndef LOG_CONTROLLER
-#define LOG_CONTROLLER
+#ifndef CARBOY_LOG_LOG_CTRL_H_
+#define CARBOR_LOG_LOG_CTRL_H_
 
 #include <curses.h>
 #include <memory>

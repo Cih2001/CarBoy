@@ -1,5 +1,5 @@
-#ifndef MovementCtrl
-#define MovementCtrl
+#ifndef CARBOY_MOVEMENT_MOVEMENT_CTRL_H_
+#define CARBOY_MOVEMENT_MOVEMENT_CTRL_H_
 
 #define FRONT_LEFT_MOTOR 0
 #define FRONT_RIGHT_MOTOR 1

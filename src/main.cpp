@@ -1,11 +1,13 @@
-#include <iostream>
-#include <signal.h>
 #include "global.h"
-#include "movement_ctrl.h"
-#include "joystick_ctrl.h"
-#include <wiringPi.h>
-#include <memory>
+#include "movement/movement_ctrl.h"
+#include "joystick/joystick_ctrl.h"
+
 #include <unistd.h>
+#include <signal.h>
+#include <wiringPi.h>
+
+#include <iostream>
+#include <memory>
 #include <cstring>
 
 #define FRONT_LEFT_MOTOR_PWM 0

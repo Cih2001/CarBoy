@@ -1,4 +1,4 @@
-#include "log_ctrl.h"
+#include "log/log_ctrl.h"
 #include "global.h"
 #include <iostream>
 

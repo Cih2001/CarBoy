@@ -1,6 +1,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
-#include <log_ctrl.h>
+#include "log/log_ctrl.h"
 
 #ifdef MovementCtrl
   #define EXTERN

@@ -1,7 +1,0 @@
-[
-    {
-        "directory": "/home/pi/CarBoy",
-        "command": "g++ -I./include ./src/*",
-        "file" : "./src/main.cpp"
-    }
-]

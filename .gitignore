@@ -5,3 +5,4 @@ CarBoy
 carboy
 obj/
 .clangd/
+compile_commands.json

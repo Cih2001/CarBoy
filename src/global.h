@@ -1,12 +1,12 @@
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef CARBOY_GLOBAL_H_
 #include "log/log_ctrl.h"
 
-#ifdef MovementCtrl
-  #define EXTERN
+#ifdef CARBOY_MOVEMENT_MOVEMENT_CTRL_H_
+    #define EXTERN
 #else
-  #define EXTERN extern
+    #define EXTERN extern
 #endif
+
 
 EXTERN LogContrller logController;
 

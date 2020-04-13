@@ -177,6 +177,7 @@ public:
 
     int printf(const char *format, ...);
     void updateMotorSpeed(unsigned int idx, int speed);
+    void updateEncoderSpeed(int val1, int val2);
 
 private:
     unsigned int screen_width_;

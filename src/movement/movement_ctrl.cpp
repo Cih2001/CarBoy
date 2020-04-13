@@ -37,8 +37,6 @@ MovementController::MovementController(
         // Setting motors state. they are not moving.
         this->_motorsState[i] = MOTOR_STOPPED;
     }
-	// Setting up wiring Pi.
-	wiringPiSetup();
 
 	// Setting up PCA9685
 	_pca_fd = pca9685Setup(PCA_PIN_BASE, 0x40, _pwmFrequency);

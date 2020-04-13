@@ -7,7 +7,7 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 OBJ_DIRS := $(subst /,/,$(sort $(dir $(OBJ_FILES))))
 
 
-LDFLAGS :=  -lwiringPi -lwiringPiPca9685 -lncurses
+LDFLAGS :=  -lwiringPi -lwiringPiPca9685 -lncurses -lpthread
 CPPFLAGS := -I./src
 CXXFLAGS := -g -Wall -c -std=c++2a
 

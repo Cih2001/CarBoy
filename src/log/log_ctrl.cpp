@@ -352,8 +352,13 @@ LogContrller::LogContrller() {
         3 , 20, screen_width_ / 2 - 6,
         "Label 1"
     );
-    lbl1->setAlignment(ALIGN_RIGHT);
     left_window_->addElement(Element("lbl1", lbl1));
+    auto lbl2 = std::make_shared<Label> (
+        left_window_,
+        3 , 21, screen_width_ / 2 - 6,
+        "Label 2"
+    );
+    left_window_->addElement(Element("lbl2", lbl2));
     left_window_->refreshWindow();
 }
 
@@ -436,4 +441,12 @@ void LogContrller::initializeNcurses() {
     init_pair(BORDERS_COLOR, COLOR_RED, COLOR_BLACK);
 
     isNcursesInitialized = true;
+}
+
+void LogContrller::updateEncoderSpeed(int val1, int val2) {
+    auto lbl1 = std::static_pointer_cast<Label>(left_window_->getObjectByName("lbl1"));
+    auto lbl2 = std::static_pointer_cast<Label>(left_window_->getObjectByName("lbl2"));
+    lbl1->setCaption(std::to_string(val1));
+    lbl2->setCaption(std::to_string(val2));
+    left_window_->refreshWindow();
 }

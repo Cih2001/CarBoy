@@ -131,8 +131,7 @@ public:
         std::shared_ptr<Window> parent,
         unsigned int x,
         unsigned int y,
-        unsigned int width,
-        int min, int max
+        unsigned int width
     );
     
     void redraw() override;
@@ -177,7 +176,7 @@ public:
 
     int printf(const char *format, ...);
     void updateMotorSpeed(unsigned int idx, int speed);
-    void updateEncoderSpeed(int val1, int val2);
+    void updateEncoderSpeed(int val1, float val2);
 
 private:
     unsigned int screen_width_;

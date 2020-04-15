@@ -10,11 +10,13 @@ public:
     explicit Encoder(unsigned int signal_pin_1, unsigned int signal_pin_2);
 
     int GetCounter();
+    float GetSpeed();
 
 private:
     unsigned int signal_pin_1_;
     unsigned int signal_pin_2_;
     int counter_ = 0;
+    float speed_ = 0; // count per minute.
     std::thread* t_ = nullptr;
 
     void thread_entry();
@@ -34,6 +36,7 @@ public:
     );
 
     std::vector<int> GetCounters();
+    std::vector<float> GetSpeeds();
 private:
     std::vector<Encoder*> encoders;
 

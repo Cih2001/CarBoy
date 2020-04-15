@@ -1,6 +1,9 @@
 #include "log/log_ctrl.h"
+
 #include "global.h"
+
 #include <iostream>
+#include <algorithm>
 
 Object::Object(std::shared_ptr<Window> parent, 
     unsigned int x,
@@ -215,12 +218,8 @@ HorizentalGauge::HorizentalGauge(
     std::shared_ptr<Window> parent,
     unsigned int x,
     unsigned int y,
-    unsigned int width,
-    int min, int max
-) : Object(parent, x, y, width, 1) {
-    min_ = min;
-    max_ = max;
-}
+    unsigned int width) : Object(parent, x, y, width, 1)
+{ }
 
 void HorizentalGauge::redraw() {
     this->clear();
@@ -235,8 +234,15 @@ void HorizentalGauge::redraw() {
 }
 
 void HorizentalGauge::setValue(int value) {
-    if ( value >= min_ && value <= max_) 
-        value_ = value;
+    min_ = std::min(min_, value); 
+    max_ = std::max(max_, value); 
+    if (max_ < -min_) {
+        max_ = -min_; 
+    }
+    else {
+        min_ = -max_;
+    }
+    value_ = value;
 }
 
 /////////////////////////////////////////////////////////
@@ -340,8 +346,7 @@ LogContrller::LogContrller() {
         gauge_border->setAlignment(ALIGN_LEFT);
         auto gauge = std::make_shared<HorizentalGauge> (
             left_window_,
-            3 , 3 + i * 4, screen_width_ / 2 - 6,
-            -4096, 4096
+            3 , 3 + i * 4, screen_width_ / 2 - 6
         );
         left_window_->addElement(Element("fraGague" + std::to_string(i), gauge_border));
         left_window_->addElement(Element("gauge" + std::to_string(i), gauge));
@@ -443,7 +448,7 @@ void LogContrller::initializeNcurses() {
     isNcursesInitialized = true;
 }
 
-void LogContrller::updateEncoderSpeed(int val1, int val2) {
+void LogContrller::updateEncoderSpeed(int val1, float val2) {
     auto lbl1 = std::static_pointer_cast<Label>(left_window_->getObjectByName("lbl1"));
     auto lbl2 = std::static_pointer_cast<Label>(left_window_->getObjectByName("lbl2"));
     lbl1->setCaption(std::to_string(val1));

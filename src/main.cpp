@@ -11,6 +11,7 @@
 #include <iostream>
 #include <memory>
 #include <cstring>
+#include <algorithm>
 
 #define FRONT_LEFT_MOTOR_PWM 0
 #define FRONT_LEFT_MOTOR_EN1 1
@@ -116,6 +117,7 @@ int main(int argc, const char** argv) {
     int relativeSpeed = 0;
     // Parent process continues here.
 
+    float max_speed = 0;
     for (;;) {
         // We should constantly read the pipe.
 
@@ -143,8 +145,10 @@ int main(int argc, const char** argv) {
             }
         }
 
-        auto counter =  encoderCtrl->GetCounters();
-        logController.updateEncoderSpeed(counter[0], 0);
+        auto counters =  encoderCtrl->GetCounters();
+        auto speeds =  encoderCtrl->GetSpeeds();
+        max_speed = std::max(speeds[0], max_speed);
+        logController.updateEncoderSpeed(counters[0], max_speed);
 
     }
     return 0;

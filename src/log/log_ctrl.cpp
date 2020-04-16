@@ -6,11 +6,13 @@
 #include <algorithm>
 
 Object::Object(std::shared_ptr<Window> parent, 
+    std::string name,
     unsigned int x,
     unsigned int y,
     unsigned int width,
     unsigned int height)
 {
+    name_ = name;
     x_ = x;
     y_ = y;
     width_ = width;
@@ -28,11 +30,12 @@ void Object::clear() {
 /////////////////////////////////////////////////////////
 
 Frame::Frame(std::shared_ptr<Window> parent,
+    std::string name,
     unsigned int x,
     unsigned int y,
     unsigned int width,
     unsigned int height,
-    std::string title) : Object(parent, x, y, width, height)
+    std::string title) : Object(parent, name, x, y, width, height)
 {
     title_ = title;
 }
@@ -95,11 +98,12 @@ void Frame::setTitle(std::string title) {
 
 AutoScrollLabel::AutoScrollLabel(
     std::shared_ptr<Window> parent,
+    std::string name,
     unsigned int x,
     unsigned int y,
     unsigned int width,
     unsigned int height
-) : Object(parent, x, y, width, height) {
+) : Object(parent, name, x, y, width, height) {
 
 }
 
@@ -141,10 +145,6 @@ Window::Window(
     wnd_ = newwin(height, width, y, x);
 }
 
-void Window::setMargin(unsigned int margin) {
-    margin_ = margin;
-}
-
 Window::~Window() {
     delwin(wnd_);
 }
@@ -156,46 +156,10 @@ void Window::refreshWindow() {
     wrefresh(wnd_);
 }
 
-unsigned int Window::getX0() {
-    return x_;
-}
-
-unsigned int Window::getX1() {
-    return x_ + width_;
-}
-
-unsigned int Window::getY0() {
-    return y_;
-}
-
-unsigned int Window::getY1() {
-    return y_ + height_;
-}
-
 void Window::move(unsigned int x, unsigned int y) {
     cursor_x_ = x;
     cursor_y_ = y;
     wmove(wnd_, y, x);
-}
-
-void Window::mmove(unsigned int x, unsigned int y) {
-    move(x + margin_, y + margin_);
-}
-
-unsigned int Window::getCursorX() {
-    return cursor_x_;
-}
-
-unsigned int Window::getCursorY() {
-    return cursor_y_;
-}
-
-unsigned int Window::getmCursorX() {
-    return cursor_x_ - margin_;
-}
-
-unsigned int Window::getmCursorY() {
-    return cursor_y_ - margin_;
 }
 
 void Window::addElement(Element elm) {
@@ -214,17 +178,22 @@ std::shared_ptr<Object> Window::getObjectByName(std::string name) {
 // HorizentalGauge implementations
 /////////////////////////////////////////////////////////
 
-HorizentalGauge::HorizentalGauge(
+template <typename T>
+HorizentalGauge<T>::HorizentalGauge(
     std::shared_ptr<Window> parent,
+    std::string name,
     unsigned int x,
     unsigned int y,
-    unsigned int width) : Object(parent, x, y, width, 1)
-{ }
+    unsigned int width) : Object(parent, name, x, y, width, 1)
+{ 
+    min_ = max_ = value_ = 0;
+}
 
-void HorizentalGauge::redraw() {
+template <typename T>
+void HorizentalGauge<T>::redraw() {
     this->clear();
 
-    auto mapped_val = map(value_, min_, max_, - (int)width_ / 2, (int)width_ / 2);
+    auto mapped_val = map(value_, min_, max_, - (T)width_ / 2, (T)width_ / 2);
     if (mapped_val > 0) {
         mvwhline(parent_->wnd_, y_, x_ + width_ / 2, '|', mapped_val);
     } else {
@@ -233,7 +202,8 @@ void HorizentalGauge::redraw() {
     mvwaddch(parent_->wnd_, y_, x_ + width_ / 2, ACS_CKBOARD);
 }
 
-void HorizentalGauge::setValue(int value) {
+template <typename T>
+void HorizentalGauge<T>::setValue(T value) {
     min_ = std::min(min_, value); 
     max_ = std::max(max_, value); 
     if (max_ < -min_) {
@@ -251,11 +221,12 @@ void HorizentalGauge::setValue(int value) {
 
 Label::Label(
     std::shared_ptr<Window> parent,
+    std::string name,
     unsigned int x,
     unsigned int y,
     unsigned int width,
     std::string caption
-) : Object(parent, x, y, width, 1) 
+) : Object(parent, name, x, y, width, 1) 
 {
     caption_ = caption;
 }
@@ -302,11 +273,13 @@ LogContrller::LogContrller() {
     );
     auto frame = std::make_shared<Frame> (
         right_window_,
+        "Logs",
         0 , 0, screen_width_ / 2, screen_height_,
         "Logs"
     );
     auto auto_scroll_label = std::make_shared<AutoScrollLabel> (
         right_window_,
+        "AutoScrollLabel1",
         1, 1, screen_width_ / 2 - 2, screen_height_ - 2
     );
     right_window_->addElement(Element("frmMain", frame));
@@ -318,13 +291,14 @@ LogContrller::LogContrller() {
     );
     auto left_frame = std::make_shared<Frame> (
         left_window_,
+        "LeftFrame",
         0 , 0, screen_width_ / 2, screen_height_,
         "Stats"
     );
     left_window_->addElement(Element("frmMain", left_frame));
-    for (unsigned int i = 0; i < 4; i++) {
+    for (unsigned int i = 0; i < 8; i++) {
         std::string gauge_title;
-        switch (i) {
+        switch (i % 4) {
         case 0:
             gauge_title = "Front Left Motor";
             break;
@@ -340,27 +314,40 @@ LogContrller::LogContrller() {
         }
         auto gauge_border = std::make_shared<Frame> (
             left_window_,
+            "gaugeBorder" + std::to_string(i),
             2 , 2 + i * 4, screen_width_ / 2 - 4, 3,
             gauge_title
         );
         gauge_border->setAlignment(ALIGN_LEFT);
-        auto gauge = std::make_shared<HorizentalGauge> (
-            left_window_,
-            3 , 3 + i * 4, screen_width_ / 2 - 6
-        );
         left_window_->addElement(Element("fraGague" + std::to_string(i), gauge_border));
-        left_window_->addElement(Element("gauge" + std::to_string(i), gauge));
+        if ( i < 4 ) {
+            auto gauge = std::make_shared<HorizentalGauge<int>> (
+                left_window_,
+                "gauge" + std::to_string(i),
+                3 , 3 + i * 4, screen_width_ / 2 - 6
+            );
+            left_window_->addElement(Element("gauge" + std::to_string(i), gauge));
+        } else {
+            auto gauge = std::make_shared<HorizentalGauge<float>> (
+                left_window_,
+                "gauge" + std::to_string(i),
+                3 , 3 + i * 4, screen_width_ / 2 - 6
+            );
+            left_window_->addElement(Element("gauge" + std::to_string(i), gauge));
+        }
     }
 
     auto lbl1 = std::make_shared<Label> (
         left_window_,
-        3 , 20, screen_width_ / 2 - 6,
+        "Label 1",
+        3 , 40, screen_width_ / 2 - 6,
         "Label 1"
     );
     left_window_->addElement(Element("lbl1", lbl1));
     auto lbl2 = std::make_shared<Label> (
         left_window_,
-        3 , 21, screen_width_ / 2 - 6,
+        "Label 2",
+        3 , 41, screen_width_ / 2 - 6,
         "Label 2"
     );
     left_window_->addElement(Element("lbl2", lbl2));
@@ -378,7 +365,7 @@ int LogContrller::printf(const char *format, ...) {
     int res = vsprintf(buff, format, args);
     va_end(args);
     std::string str(buff);
-    auto label = std::static_pointer_cast<AutoScrollLabel>(
+    auto label = std::dynamic_pointer_cast<AutoScrollLabel>(
         right_window_->getObjectByName("auto1")
     );
     if (label != nullptr)
@@ -388,10 +375,7 @@ int LogContrller::printf(const char *format, ...) {
 }
 
 void LogContrller::updateMotorSpeed(unsigned int idx, int speed) {
-    speed = (speed < -4098) ? -4098 : speed;
-    speed = (speed > 4098) ? 4098 : speed;
-
-    auto gauge = std::static_pointer_cast<HorizentalGauge>(
+    auto gauge = std::dynamic_pointer_cast<HorizentalGauge<int>>(
         left_window_->getObjectByName("gauge" + std::to_string(idx))
     );
     if (gauge != nullptr)
@@ -399,7 +383,7 @@ void LogContrller::updateMotorSpeed(unsigned int idx, int speed) {
         gauge->setValue(speed);
     }
 
-    auto frame = std::static_pointer_cast<Frame>(
+    auto frame = std::dynamic_pointer_cast<Frame>(
         left_window_->getObjectByName("fraGague" + std::to_string(idx))
     );
     if (frame != nullptr)
@@ -449,8 +433,16 @@ void LogContrller::initializeNcurses() {
 }
 
 void LogContrller::updateEncoderSpeed(int val1, float val2) {
-    auto lbl1 = std::static_pointer_cast<Label>(left_window_->getObjectByName("lbl1"));
-    auto lbl2 = std::static_pointer_cast<Label>(left_window_->getObjectByName("lbl2"));
+    auto gauge = std::dynamic_pointer_cast<HorizentalGauge<float>>(
+        left_window_->getObjectByName("gauge4")
+    );
+    if (gauge != nullptr)
+    {
+        gauge->setValue(val2);
+    }
+
+    auto lbl1 = std::dynamic_pointer_cast<Label>(left_window_->getObjectByName("lbl1"));
+    auto lbl2 = std::dynamic_pointer_cast<Label>(left_window_->getObjectByName("lbl2"));
     lbl1->setCaption(std::to_string(val1));
     lbl2->setCaption(std::to_string(val2));
     left_window_->refreshWindow();

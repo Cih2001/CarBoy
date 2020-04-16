@@ -17,6 +17,7 @@ class Window;
 class Object {
 public:
     Object(std::shared_ptr<Window> parent,
+        std::string name,
         unsigned int x,
         unsigned int y,
         unsigned int width,
@@ -28,6 +29,7 @@ public:
 protected:
     std::shared_ptr<Window> parent_;
     unsigned int x_, y_, width_, height_;
+    std::string name_;
 };
 
 typedef std::pair<std::string, std::shared_ptr<Object>> Element;
@@ -46,17 +48,8 @@ public:
     // Moves cursor to a position on window.
     void move(unsigned int x, unsigned int y);
 
-    // Margin move, move cursor to a position on window considering margines as well.
-    void mmove(unsigned int x, unsigned int y);
-
     // Refreshes the window.
     void refreshWindow();
-
-    void setMargin(unsigned int margin = 0);
-    unsigned int getX0();
-    unsigned int getY0();
-    unsigned int getX1();
-    unsigned int getY1();
 
     void addElement(Element);
 
@@ -92,6 +85,7 @@ enum Alignment {
 class Frame : public Object {
 public:
     explicit Frame(std::shared_ptr<Window> parent,
+        std::string name,
         unsigned int x,
         unsigned int y,
         unsigned int width,
@@ -111,6 +105,7 @@ private:
 class AutoScrollLabel : public Object {
 public:
     explicit AutoScrollLabel(std::shared_ptr<Window> parent,
+        std::string name,
         unsigned int x,
         unsigned int y,
         unsigned int width,
@@ -125,27 +120,30 @@ private:
     std::deque<std::string> lines_;
 };
 
+template <typename T>
 class HorizentalGauge : public Object {
 public:
     explicit HorizentalGauge(
         std::shared_ptr<Window> parent,
+        std::string name,
         unsigned int x,
         unsigned int y,
         unsigned int width
     );
     
     void redraw() override;
-    void setValue(int);
-    int getValue();
+    void setValue(T);
+    T getValue();
 
 private:
-    int min_, max_, value_ = 0;
+    T min_, max_, value_;
 };
 
 class Label: public Object {
 public:
     explicit Label(
         std::shared_ptr<Window> parent,
+        std::string name,
         unsigned int x,
         unsigned int y,
         unsigned int width,

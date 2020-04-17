@@ -19,16 +19,17 @@ int Encoder::GetCounter() {
 }
 
 void Encoder::addTimeToQueue(std::chrono::high_resolution_clock::time_point point) {
+    mtx_.lock();
     time_queue_.push_back(point);
     if (time_queue_.size() > QUEUE_SIZE) {
         time_queue_.pop_front();
     }
+    mtx_.unlock();
 }
 
 void Encoder::thread_entry() {
 
     auto last_state = digitalRead(signal_pin_1_);
-    this->addTimeToQueue(std::chrono::high_resolution_clock::now());
     for (;;) {
         // read encoder values
         auto stateA = digitalRead(signal_pin_1_); 
@@ -47,17 +48,19 @@ void Encoder::thread_entry() {
 }
 
 float Encoder::GetSpeed() {
+    mtx_.lock();
     float speed = 0.0;
     auto size = time_queue_.size();
-    if ( size < 2 ) {
+    if ( size >= 2 ) {
         // Ensuring that enough points are captured.
-        return speed;
+        for (unsigned int i = 0; i < size - 1; i++) {
+            std::chrono::duration<float, std::milli> dur = time_queue_[i + 1] - time_queue_[i];
+            speed += 1000 / dur.count();
+        }
+        speed = speed / (size - 1);
     }
-    for (unsigned int i = 0; i < size - 1; i++) {
-        std::chrono::duration<float, std::milli> dur = time_queue_[i + 1] - time_queue_[i];
-        speed += 1000 / dur.count();
-    }
-    return speed / (size - 1);
+    mtx_.unlock();
+    return speed;
 }
 
 EncoderController::EncoderController(

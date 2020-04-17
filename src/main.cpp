@@ -116,7 +116,7 @@ int main(int argc, const char** argv) {
 
     int relativeSpeed = 0;
     // Parent process continues here.
-    //
+
     for (;;) {
         // We should constantly read the pipe.
 
@@ -146,7 +146,8 @@ int main(int argc, const char** argv) {
 
         auto counters =  encoderCtrl->GetCounters();
         auto speeds =  encoderCtrl->GetSpeeds();
-        logController.updateEncoderSpeed(counters[0], speeds[0]);
+        float rpm = speeds[0] / 65 * 60;
+        logController.updateEncoderSpeed(counters[0], rpm);
 
     }
     return 0;

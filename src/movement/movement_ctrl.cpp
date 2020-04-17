@@ -65,11 +65,10 @@ void MovementController::SetRelativeSpeed(int relativeSpeed) {
 }
 
 void MovementController::MoveForward(int speed = 0) {
-    this->moveMotor(REAR_LEFT_MOTOR,speed ,FORWARD);
-    this->moveMotor(REAR_RIGHT_MOTOR,speed,FORWARD);
-    // TODO: fix this
-    this->moveMotor(FRONT_LEFT_MOTOR,speed+ 0.15 * speed,FORWARD);
-    this->moveMotor(FRONT_RIGHT_MOTOR,speed,FORWARD);
+    this->moveMotor(REAR_LEFT_MOTOR, speed, FORWARD);
+    this->moveMotor(REAR_RIGHT_MOTOR, speed, FORWARD);
+    this->moveMotor(FRONT_LEFT_MOTOR, speed, FORWARD);
+    this->moveMotor(FRONT_RIGHT_MOTOR, speed, FORWARD);
     _currentCommand = MOVE_FORWARD;
     return;
 }
@@ -85,8 +84,6 @@ void MovementController::MoveForwardRelative(int relativeSpeed) {
 
 void MovementController::MoveBackwardRelative(int relativeSpeed) {
     relativeSpeed = (relativeSpeed > 100) ? 100 : relativeSpeed;
-    relativeSpeed = (relativeSpeed < -100) ? -100 : relativeSpeed;
-    int delta = (int)((float)((relativeSpeed > 0) ? _diffToTopSpeed : _diffToBottomSpeed) * (float) relativeSpeed / 100.0);
     int speed = (_defaultSpeed + delta);
     logController.printf("Move backward relative: %d\n", speed);
     this->MoveBackward(speed);

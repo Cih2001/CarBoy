@@ -25,6 +25,10 @@ void Object::clear() {
         mvwhline(parent_->wnd_, y_ + i, x_ , ' ', width_);
 }
 
+std::string Object::getName() {
+    return name_;
+}
+
 /////////////////////////////////////////////////////////
 // Frame implementations
 /////////////////////////////////////////////////////////
@@ -151,7 +155,7 @@ Window::~Window() {
 
 void Window::refreshWindow() {
     for (auto child : children_) {
-        child.second->redraw();
+        child->redraw();
     }
     wrefresh(wnd_);
 }
@@ -162,14 +166,16 @@ void Window::move(unsigned int x, unsigned int y) {
     wmove(wnd_, y, x);
 }
 
-void Window::addElement(Element elm) {
-    children_.push_back(elm); 
+bool Window::addChild(std::shared_ptr<Object> obj) {
+    // we have to check if the object does not exists
+    children_.push_back(obj); 
+    return true;
 }
 
 std::shared_ptr<Object> Window::getObjectByName(std::string name) {
     for (auto child : children_) {
-        if (child.first == name)
-            return child.second;
+        if (child->getName() == name)
+            return child;
     }
     return nullptr;
 }
@@ -273,17 +279,17 @@ LogContrller::LogContrller() {
     );
     auto frame = std::make_shared<Frame> (
         right_window_,
-        "Logs",
+        "fraLogs",
         0 , 0, screen_width_ / 2, screen_height_,
         "Logs"
     );
     auto auto_scroll_label = std::make_shared<AutoScrollLabel> (
         right_window_,
-        "AutoScrollLabel1",
+        "aslLogs",
         1, 1, screen_width_ / 2 - 2, screen_height_ - 2
     );
-    right_window_->addElement(Element("frmMain", frame));
-    right_window_->addElement(Element("auto1", auto_scroll_label));
+    right_window_->addChild(frame);
+    right_window_->addChild(auto_scroll_label);
     right_window_->refreshWindow();
 
     left_window_ = std::make_shared<Window>(
@@ -291,11 +297,11 @@ LogContrller::LogContrller() {
     );
     auto left_frame = std::make_shared<Frame> (
         left_window_,
-        "LeftFrame",
+        "frmStats",
         0 , 0, screen_width_ / 2, screen_height_,
         "Stats"
     );
-    left_window_->addElement(Element("frmMain", left_frame));
+    left_window_->addChild(left_frame);
     for (unsigned int i = 0; i < 8; i++) {
         std::string gauge_title;
         switch (i % 4) {
@@ -314,43 +320,43 @@ LogContrller::LogContrller() {
         }
         auto gauge_border = std::make_shared<Frame> (
             left_window_,
-            "gaugeBorder" + std::to_string(i),
+            "fraGagueBorder" + std::to_string(i),
             2 , 2 + i * 4, screen_width_ / 2 - 4, 3,
             gauge_title
         );
         gauge_border->setAlignment(ALIGN_LEFT);
-        left_window_->addElement(Element("fraGague" + std::to_string(i), gauge_border));
+        left_window_->addChild(gauge_border);
         if ( i < 4 ) {
             auto gauge = std::make_shared<HorizentalGauge<int>> (
                 left_window_,
-                "gauge" + std::to_string(i),
+                "gau" + std::to_string(i),
                 3 , 3 + i * 4, screen_width_ / 2 - 6
             );
-            left_window_->addElement(Element("gauge" + std::to_string(i), gauge));
+            left_window_->addChild(gauge);
         } else {
             auto gauge = std::make_shared<HorizentalGauge<float>> (
                 left_window_,
-                "gauge" + std::to_string(i),
+                "gau" + std::to_string(i),
                 3 , 3 + i * 4, screen_width_ / 2 - 6
             );
-            left_window_->addElement(Element("gauge" + std::to_string(i), gauge));
+            left_window_->addChild(gauge);
         }
     }
 
     auto lbl1 = std::make_shared<Label> (
         left_window_,
-        "Label 1",
+        "lbl1",
         3 , 40, screen_width_ / 2 - 6,
         "Label 1"
     );
-    left_window_->addElement(Element("lbl1", lbl1));
+    left_window_->addChild(lbl1);
     auto lbl2 = std::make_shared<Label> (
         left_window_,
-        "Label 2",
+        "lbl2",
         3 , 41, screen_width_ / 2 - 6,
         "Label 2"
     );
-    left_window_->addElement(Element("lbl2", lbl2));
+    left_window_->addChild(lbl2);
     left_window_->refreshWindow();
 }
 
@@ -366,7 +372,7 @@ int LogContrller::printf(const char *format, ...) {
     va_end(args);
     std::string str(buff);
     auto label = std::dynamic_pointer_cast<AutoScrollLabel>(
-        right_window_->getObjectByName("auto1")
+        right_window_->getObjectByName("aslLogs")
     );
     if (label != nullptr)
         label->println(str);
@@ -376,7 +382,7 @@ int LogContrller::printf(const char *format, ...) {
 
 void LogContrller::updateMotorSpeed(unsigned int idx, int speed) {
     auto gauge = std::dynamic_pointer_cast<HorizentalGauge<int>>(
-        left_window_->getObjectByName("gauge" + std::to_string(idx))
+        left_window_->getObjectByName("gau" + std::to_string(idx))
     );
     if (gauge != nullptr)
     {
@@ -384,7 +390,7 @@ void LogContrller::updateMotorSpeed(unsigned int idx, int speed) {
     }
 
     auto frame = std::dynamic_pointer_cast<Frame>(
-        left_window_->getObjectByName("fraGague" + std::to_string(idx))
+        left_window_->getObjectByName("fraGagueBorder" + std::to_string(idx))
     );
     if (frame != nullptr)
     {
@@ -434,7 +440,7 @@ void LogContrller::initializeNcurses() {
 
 void LogContrller::updateEncoderSpeed(int val1, float val2) {
     auto gauge = std::dynamic_pointer_cast<HorizentalGauge<float>>(
-        left_window_->getObjectByName("gauge4")
+        left_window_->getObjectByName("gau4")
     );
     if (gauge != nullptr)
     {

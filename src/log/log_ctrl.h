@@ -26,13 +26,13 @@ public:
     
     virtual void redraw() = 0;
     virtual void clear();
+
+    std::string getName();
 protected:
     std::shared_ptr<Window> parent_;
     unsigned int x_, y_, width_, height_;
     std::string name_;
 };
-
-typedef std::pair<std::string, std::shared_ptr<Object>> Element;
 
 class Window {
 public:
@@ -51,12 +51,12 @@ public:
     // Refreshes the window.
     void refreshWindow();
 
-    void addElement(Element);
+    bool addChild(std::shared_ptr<Object>);
 
     std::shared_ptr<Object> getObjectByName(std::string);
 
     // TODO: should be moved to private section and whole structure should be changed.
-    std::vector<Element> children_;
+    std::vector<std::shared_ptr<Object>> children_;
 
 protected:
     unsigned int x_, y_, width_, height_;

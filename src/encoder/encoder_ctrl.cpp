@@ -2,8 +2,8 @@
 #include "global.h"
 
 #include <wiringPi.h>
-#include <chrono>
 
+#define QUEUE_SIZE 15
 
 Encoder::Encoder(unsigned int signal_pin_1, unsigned int signal_pin_2) {
     pinMode(signal_pin_1, INPUT);
@@ -18,32 +18,46 @@ int Encoder::GetCounter() {
     return counter_;
 }
 
+void Encoder::addTimeToQueue(std::chrono::high_resolution_clock::time_point point) {
+    time_queue_.push_back(point);
+    if (time_queue_.size() > QUEUE_SIZE) {
+        time_queue_.pop_front();
+    }
+}
+
 void Encoder::thread_entry() {
 
     auto last_state = digitalRead(signal_pin_1_);
-    auto last_time = std::chrono::high_resolution_clock::now();
+    this->addTimeToQueue(std::chrono::high_resolution_clock::now());
     for (;;) {
         // read encoder values
         auto stateA = digitalRead(signal_pin_1_); 
         auto stateB = digitalRead(signal_pin_2_); 
         if (stateA != last_state) {
-            auto time = std::chrono::high_resolution_clock::now();
+            this->addTimeToQueue(std::chrono::high_resolution_clock::now());
             if (stateB != stateA) {
                 counter_++;
             } else {
                 counter_--;
             }
             // compute speed.
-            std::chrono::duration<float, std::milli> dur = time - last_time;
-            speed_ = 1 / dur.count() * 1000;
             last_state = stateA;
-            last_time = time;
         }
     }
 }
 
 float Encoder::GetSpeed() {
-    return speed_;
+    float speed = 0.0;
+    auto size = time_queue_.size();
+    if ( size < 2 ) {
+        // Ensuring that enough points are captured.
+        return speed;
+    }
+    for (unsigned int i = 0; i < size - 1; i++) {
+        std::chrono::duration<float, std::milli> dur = time_queue_[i + 1] - time_queue_[i];
+        speed += 1000 / dur.count();
+    }
+    return speed / (size - 1);
 }
 
 EncoderController::EncoderController(

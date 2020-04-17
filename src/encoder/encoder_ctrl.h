@@ -4,6 +4,8 @@
 #include <vector>
 #include <memory>
 #include <thread>
+#include <deque>
+#include <chrono>
 
 class Encoder {
 public:
@@ -16,9 +18,10 @@ private:
     unsigned int signal_pin_1_;
     unsigned int signal_pin_2_;
     int counter_ = 0;
-    float speed_ = 0; // count per minute.
     std::thread* t_ = nullptr;
+    std::deque<std::chrono::high_resolution_clock::time_point> time_queue_;
 
+    void addTimeToQueue(std::chrono::high_resolution_clock::time_point);
     void thread_entry();
 };
 

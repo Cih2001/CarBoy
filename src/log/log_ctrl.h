@@ -76,6 +76,7 @@ protected:
 
 };
 
+// Used in different objects for aligning titles or captions.
 enum Alignment {
     ALIGN_LEFT,
     ALIGN_CENTER,

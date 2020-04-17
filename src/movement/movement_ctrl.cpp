@@ -84,6 +84,8 @@ void MovementController::MoveForwardRelative(int relativeSpeed) {
 
 void MovementController::MoveBackwardRelative(int relativeSpeed) {
     relativeSpeed = (relativeSpeed > 100) ? 100 : relativeSpeed;
+    relativeSpeed = (relativeSpeed < -100) ? -100 : relativeSpeed;
+    int delta = (int)((float)((relativeSpeed > 0) ? _diffToTopSpeed : _diffToBottomSpeed) * (float) relativeSpeed / 100.0);
     int speed = (_defaultSpeed + delta);
     logController.printf("Move backward relative: %d\n", speed);
     this->MoveBackward(speed);

@@ -20,10 +20,15 @@ private:
     unsigned int signal_pin_2_;
     int counter_ = 0;
     std::thread* t_ = nullptr;
-    std::deque<std::chrono::high_resolution_clock::time_point> time_queue_;
+
+    typedef struct {
+         int counter;
+         std::chrono::high_resolution_clock::time_point time;
+    } Point;
+    std::deque<Point> points_queue_;
     std::mutex mtx_;
 
-    void addTimeToQueue(std::chrono::high_resolution_clock::time_point);
+    void addTimeToQueue(int, std::chrono::high_resolution_clock::time_point);
     void thread_entry();
 };
 

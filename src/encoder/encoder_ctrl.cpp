@@ -18,11 +18,12 @@ int Encoder::GetCounter() {
     return counter_;
 }
 
-void Encoder::addTimeToQueue(std::chrono::high_resolution_clock::time_point point) {
+void Encoder::addTimeToQueue(int counter, std::chrono::high_resolution_clock::time_point time) {
     mtx_.lock();
-    time_queue_.push_back(point);
-    if (time_queue_.size() > QUEUE_SIZE) {
-        time_queue_.pop_front();
+    Point point = {counter, time};
+    points_queue_.push_back(point);
+    if (points_queue_.size() > QUEUE_SIZE) {
+        points_queue_.pop_front();
     }
     mtx_.unlock();
 }
@@ -32,10 +33,10 @@ void Encoder::thread_entry() {
     auto last_state = digitalRead(signal_pin_1_);
     for (;;) {
         // read encoder values
+        auto time = std::chrono::high_resolution_clock::now();
         auto stateA = digitalRead(signal_pin_1_); 
         auto stateB = digitalRead(signal_pin_2_); 
         if (stateA != last_state) {
-            this->addTimeToQueue(std::chrono::high_resolution_clock::now());
             if (stateB != stateA) {
                 counter_++;
             } else {
@@ -43,6 +44,8 @@ void Encoder::thread_entry() {
             }
             // compute speed.
             last_state = stateA;
+            // Lets take samples each milliseconds.
+            this->addTimeToQueue(counter_, time);
         }
     }
 }
@@ -50,12 +53,14 @@ void Encoder::thread_entry() {
 float Encoder::GetSpeed() {
     mtx_.lock();
     float speed = 0.0;
-    auto size = time_queue_.size();
+    auto size = points_queue_.size();
     if ( size >= 2 ) {
         // Ensuring that enough points are captured.
         for (unsigned int i = 0; i < size - 1; i++) {
-            std::chrono::duration<float, std::milli> dur = time_queue_[i + 1] - time_queue_[i];
-            speed += 1000 / dur.count();
+            std::chrono::duration<float, std::milli> dur 
+                = points_queue_[i + 1].time - points_queue_[i].time;
+            speed += (points_queue_[i + 1].counter - points_queue_[i].counter) *
+                1000 / dur.count();
         }
         speed = speed / (size - 1);
     }

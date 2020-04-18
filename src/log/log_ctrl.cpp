@@ -438,9 +438,9 @@ void LogContrller::initializeNcurses() {
     isNcursesInitialized = true;
 }
 
-void LogContrller::updateEncoderSpeed(int val1, float val2) {
+void LogContrller::updateEncoderSpeed(int idx, float val2) {
     auto gauge = std::dynamic_pointer_cast<HorizentalGauge<float>>(
-        left_window_->getObjectByName("gau4")
+        left_window_->getObjectByName("gau" + std::to_string(idx + 4))
     );
     if (gauge != nullptr)
     {
@@ -449,7 +449,10 @@ void LogContrller::updateEncoderSpeed(int val1, float val2) {
 
     auto lbl1 = std::dynamic_pointer_cast<Label>(left_window_->getObjectByName("lbl1"));
     auto lbl2 = std::dynamic_pointer_cast<Label>(left_window_->getObjectByName("lbl2"));
-    lbl1->setCaption(std::to_string(val1));
-    lbl2->setCaption(std::to_string(val2));
+    if (idx == 0) {
+        lbl1->setCaption(std::to_string(val2));
+    } else {
+        lbl2->setCaption(std::to_string(val2));
+    }
     left_window_->refreshWindow();
 }

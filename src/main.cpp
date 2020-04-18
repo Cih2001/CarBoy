@@ -34,8 +34,8 @@
 #define FRONT_LEFT_ENCODER_PIN1 23
 #define FRONT_LEFT_ENCODER_PIN2 24
 
-#define FRONT_RIGHT_ENCODER_PIN1 23
-#define FRONT_RIGHT_ENCODER_PIN2 23
+#define FRONT_RIGHT_ENCODER_PIN1 27
+#define FRONT_RIGHT_ENCODER_PIN2 28
 
 #define REAR_LEFT_ENCODER_PIN1 23
 #define REAR_LEFT_ENCODER_PIN2 23
@@ -144,10 +144,10 @@ int main(int argc, const char** argv) {
             }
         }
 
-        auto counters =  encoderCtrl->GetCounters();
+        // auto counters =  encoderCtrl->GetCounters();
         auto speeds =  encoderCtrl->GetSpeeds();
-        float rpm = speeds[0] / 65 * 60;
-        logController.updateEncoderSpeed(counters[0], rpm);
+        logController.updateEncoderSpeed(0, speeds[0]);
+        logController.updateEncoderSpeed(1, speeds[1]);
 
     }
     return 0;

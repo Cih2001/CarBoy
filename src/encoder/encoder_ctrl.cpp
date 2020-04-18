@@ -109,7 +109,7 @@ EncoderController::EncoderController(
     unsigned int signal_pin_2_rear_right)
 {
     encoders.push_back(new Encoder(signal_pin_1_front_left, signal_pin_2_front_left));
-    //encoders.push_back(new Encoder(signal_pin_1_front_right, signal_pin_2_front_right));
+    encoders.push_back(new Encoder(signal_pin_1_front_right, signal_pin_2_front_right));
     //encoders.push_back(new Encoder(signal_pin_1_rear_left, signal_pin_2_rear_left));
     //encoders.push_back(new Encoder(signal_pin_1_rear_right, signal_pin_2_rear_right));
 }
@@ -117,7 +117,7 @@ EncoderController::EncoderController(
 std::vector<int> EncoderController::GetCounters() {
     std::vector<int> result;
     result.push_back(encoders[0]->GetCounter());
-    //result.push_back(encoders[1]->GetCounter());
+    result.push_back(encoders[1]->GetCounter());
     //result.push_back(encoders[2]->GetCounter());
     //result.push_back(encoders[3]->GetCounter());
     return  result;
@@ -126,8 +126,8 @@ std::vector<int> EncoderController::GetCounters() {
 std::vector<float> EncoderController::GetSpeeds() {
     std::vector<float> result;
     result.push_back(encoders[0]->GetSpeed());
-    //result.push_back(encoders[1]->GetCounter());
-    //result.push_back(encoders[2]->GetCounter());
-    //result.push_back(encoders[3]->GetCounter());
+    result.push_back(encoders[1]->GetSpeed());
+    //result.push_back(encoders[2]->GetSpeed());
+    //result.push_back(encoders[3]->GetSpeed());
     return  result;
 }

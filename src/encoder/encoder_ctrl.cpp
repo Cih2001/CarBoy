@@ -26,11 +26,18 @@ void Encoder::addTimeToQueue(int counter, std::chrono::high_resolution_clock::ti
         points_queue_.pop_front();
     }
     mtx_.unlock();
+    // auto speed = GetSpeed();
+    // std::ofstream debug_pipe;
+    // debug_pipe.open("/tmp/fifo1", std::ios::out | std::ios::app);
+    // debug_pipe << time.time_since_epoch().count() << " ," << counter <<
+    //     " ," << speed << "\n";
+    // debug_pipe.close();
 }
 
 void Encoder::thread_entry() {
 
     auto last_state = digitalRead(signal_pin_1_);
+    auto last_time = std::chrono::high_resolution_clock::now();
     for (;;) {
         // read encoder values
         auto time = std::chrono::high_resolution_clock::now();
@@ -45,6 +52,13 @@ void Encoder::thread_entry() {
             // compute speed.
             last_state = stateA;
             // Lets take samples each milliseconds.
+            last_time = time;
+            this->addTimeToQueue(counter_, time);
+            continue;
+        }
+        std::chrono::duration<float, std::milli> dur = time - last_time;
+        if (dur.count() >= 15) {
+            last_time = time;
             this->addTimeToQueue(counter_, time);
         }
     }
@@ -56,17 +70,33 @@ float Encoder::GetSpeed() {
     auto size = points_queue_.size();
     if ( size >= 2 ) {
         // Ensuring that enough points are captured.
-        for (unsigned int i = 0; i < size - 1; i++) {
-            std::chrono::duration<float, std::milli> dur 
-                = points_queue_[i + 1].time - points_queue_[i].time;
-            speed += (points_queue_[i + 1].counter - points_queue_[i].counter) *
-                1000 / dur.count();
-        }
-        speed = speed / (size - 1);
+        std::chrono::duration<float, std::milli> dur 
+            = points_queue_[size-1].time - points_queue_[0].time;
+        auto delta_count = points_queue_[size-1].counter - points_queue_[0].counter;
+        speed = delta_count / dur.count() * 1000;
     }
     mtx_.unlock();
     return speed;
 }
+
+// This is taking average method.
+// float Encoder::GetSpeed() {
+//     mtx_.lock();
+//     float speed = 0.0;
+//     auto size = points_queue_.size();
+//     if ( size >= 2 ) {
+//         // Ensuring that enough points are captured.
+//         for (unsigned int i = 0; i < size - 1; i++) {
+//             std::chrono::duration<float, std::milli> dur 
+//                 = points_queue_[i + 1].time - points_queue_[i].time;
+//             speed += (points_queue_[i + 1].counter - points_queue_[i].counter) *
+//                 1000 / dur.count();
+//         }
+//         speed = speed / (size - 1);
+//     }
+//     mtx_.unlock();
+//     return speed;
+// }
 
 EncoderController::EncoderController(
     unsigned int signal_pin_1_front_left,

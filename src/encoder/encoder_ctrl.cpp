@@ -123,6 +123,7 @@ std::vector<int> EncoderController::GetCounters() {
     return  result;
 }
 
+// This returns speed in countrs per second.
 std::vector<float> EncoderController::GetSpeeds() {
     std::vector<float> result;
     result.push_back(encoders[0]->GetSpeed());
@@ -130,4 +131,15 @@ std::vector<float> EncoderController::GetSpeeds() {
     //result.push_back(encoders[2]->GetSpeed());
     //result.push_back(encoders[3]->GetSpeed());
     return  result;
+}
+
+// This return speed in RPM.
+std::vector<float> EncoderController::GetSpeedsInRPM() {
+    std::vector<float> result;
+    auto speeds = this->GetSpeeds();
+    result.push_back(speeds[0] / 65 * 60);
+    result.push_back(speeds[1] / 65 * 60);
+    // result.push_back(speeds[2] / 65 * 60);
+    // result.push_back(speeds[3] / 65 * 60);
+    return result;
 }

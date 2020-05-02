@@ -47,6 +47,8 @@ public:
 
     std::vector<int> GetCounters();
     std::vector<float> GetSpeeds();
+    std::vector<float> GetSpeedsInRPM();
+
 private:
     std::vector<Encoder*> encoders;
 

@@ -91,7 +91,7 @@ void CarController::StartControl() {
         }
 
         // auto counters =  encoderCtrl->GetCounters();
-        auto speeds =  encoderCtrl->GetSpeeds();
+        auto speeds =  encoderCtrl->GetSpeedsInRPM();
         logController.updateEncoderSpeed(0, speeds[0]);
         logController.updateEncoderSpeed(1, speeds[1]);
 
